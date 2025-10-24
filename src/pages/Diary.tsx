@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, Heart, FolderPlus, BookOpen } from "lucide-react";
+import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette } from "lucide-react";
 import { format } from "date-fns";
 
 interface DiaryEntry {
@@ -20,7 +20,20 @@ interface Book {
   id: string;
   name: string;
   createdAt: Date;
+  color?: string;
 }
+
+// Predefined color options for books
+const BOOK_COLORS = [
+  { name: "Purple", value: "bg-purple-500" },
+  { name: "Blue", value: "bg-blue-500" },
+  { name: "Green", value: "bg-green-500" },
+  { name: "Yellow", value: "bg-yellow-500" },
+  { name: "Red", value: "bg-red-500" },
+  { name: "Pink", value: "bg-pink-500" },
+  { name: "Indigo", value: "bg-indigo-500" },
+  { name: "Teal", value: "bg-teal-500" },
+];
 
 const Diary = () => {
   const [entries, setEntries] = useState<DiaryEntry[]>(() => {
@@ -77,6 +90,7 @@ const Diary = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [newBookName, setNewBookName] = useState("");
+  const [selectedColor, setSelectedColor] = useState(BOOK_COLORS[0].value);
 
   // Save entries to localStorage whenever they change
   React.useEffect(() => {
@@ -122,10 +136,12 @@ const Diary = () => {
       const newBook: Book = {
         id: Date.now().toString(),
         name: newBookName.trim(),
-        createdAt: new Date()
+        createdAt: new Date(),
+        color: selectedColor
       };
       setBooks([...books, newBook]);
       setNewBookName("");
+      setSelectedColor(BOOK_COLORS[0].value);
       setIsAddingBook(false);
     }
   };
@@ -190,7 +206,7 @@ const Diary = () => {
                 onClick={() => setCurrentBook(book)}
               >
                 <div className="flex items-center">
-                  <BookOpen className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div className={`w-3 h-3 rounded-full mr-2 ${book.color || 'bg-purple-500'}`}></div>
                   <span className="truncate">{book.name}</span>
                 </div>
                 <span className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-0.5">
@@ -208,6 +224,27 @@ const Diary = () => {
                   className="rounded-full text-sm mb-2"
                   autoFocus
                 />
+                
+                {/* Color selection */}
+                <div className="mb-3">
+                  <div className="flex items-center mb-2">
+                    <Palette className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm font-medium">Color</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {BOOK_COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        className={`w-6 h-6 rounded-full ${color.value} ${
+                          selectedColor === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''
+                        }`}
+                        onClick={() => setSelectedColor(color.value)}
+                        aria-label={`Select ${color.name} color`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
                 <div className="flex gap-2">
                   <Button size="sm" className="rounded-full flex-1" onClick={handleCreateBook}>
                     Save
@@ -219,6 +256,7 @@ const Diary = () => {
                     onClick={() => {
                       setIsAddingBook(false);
                       setNewBookName("");
+                      setSelectedColor(BOOK_COLORS[0].value);
                     }}
                   >
                     Cancel
@@ -252,7 +290,12 @@ const Diary = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="border-b border-border/50 p-4 flex items-center justify-between">
           <h2 className="text-lg font-medium">
-            {currentBook ? currentBook.name : "All Entries"}
+            {currentBook ? (
+              <div className="flex items-center">
+                <div className={`w-3 h-3 rounded-full mr-2 ${currentBook.color || 'bg-purple-500'}`}></div>
+                {currentBook.name}
+              </div>
+            ) : "All Entries"}
           </h2>
           {currentEntry && (
             <Button variant="outline" size="sm" className="rounded-full" onClick={handleBackToList}>
