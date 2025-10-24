@@ -135,32 +135,32 @@ const MoodTrackerPage = () => {
       
       // Generate insights based on detected moods
       if (detectedMoods.length > 0) {
-        // Create specific advice based on detected moods
-        let advice = "";
+        // Create observations based on detected moods
+        let observations = "";
         
         if (detectedMoods.includes("frustrated")) {
-          advice = "Try taking a break and doing something you enjoy. A short walk or listening to music can help reset your mindset.";
+          observations = "When you feel frustrated, it often indicates challenges that require patience and new approaches.";
         } else if (detectedMoods.includes("anxious")) {
-          advice = "Practice deep breathing exercises. Try the 4-7-8 technique: inhale for 4 counts, hold for 7, exhale for 8.";
+          observations = "Anxiety often reflects uncertainty about future events. Acknowledging these feelings is the first step toward managing them.";
         } else if (detectedMoods.includes("sad")) {
-          advice = "Reach out to a friend or loved one. Social connection can help lift your spirits when you're feeling down.";
+          observations = "Sadness is a natural emotion that helps process difficult experiences. It often signals a need for self-compassion.";
         } else if (detectedMoods.includes("tired")) {
-          advice = "Prioritize rest tonight. Create a calming bedtime routine and aim to get 7-8 hours of sleep.";
+          observations = "Feeling tired may indicate a need for better work-life balance or more restorative activities.";
         } else if (detectedMoods.includes("overwhelmed")) {
-          advice = "Break your tasks into smaller steps. Focus on completing just one thing at a time to reduce the feeling of being overwhelmed.";
+          observations = "Feeling overwhelmed suggests you might be taking on too much. Prioritization and delegation could help.";
         } else if (detectedMoods.includes("happy") || detectedMoods.includes("grateful")) {
-          advice = "Take a moment to savor this positive feeling. Consider writing down three things you're grateful for to amplify this positivity.";
+          observations = "Positive emotions like happiness and gratitude are indicators of well-being and satisfaction with life.";
         } else {
-          advice = "Take a few minutes for self-care. Even a short meditation or stretching session can help you feel more centered.";
+          observations = "Recognizing your emotional patterns helps build self-awareness and emotional intelligence.";
         }
         
         const moodText = detectedMoods
           .map(mood => mood)
           .join(", ");
         
-        setMoodInsights(`Key emotions detected: ${moodText}. ${advice}`);
+        setMoodInsights(`Key emotions detected: ${moodText}. ${observations}`);
       } else {
-        setMoodInsights("Your entries don't show strong emotional indicators. Keep journaling to track your feelings over time! For general wellness, try to spend a few minutes in nature or practice mindfulness.");
+        setMoodInsights("Your entries don't show strong emotional indicators. This emotional balance suggests stability in your daily life.");
       }
       
       setIsAnalyzing(false);
