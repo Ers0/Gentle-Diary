@@ -135,32 +135,32 @@ const MoodTrackerPage = () => {
       
       // Generate insights based on detected moods
       if (detectedMoods.length > 0) {
-        // Create observations based on detected moods
+        // Create humanized observations based on detected moods
         let observations = "";
         
         if (detectedMoods.includes("frustrated")) {
-          observations = "When you feel frustrated, it often indicates challenges that require patience and new approaches.";
+          observations = "It seems like you've been facing some challenges lately. Remember that frustration is often a sign that you're pushing through something important.";
         } else if (detectedMoods.includes("anxious")) {
-          observations = "Anxiety often reflects uncertainty about future events. Acknowledging these feelings is the first step toward managing them.";
+          observations = "I notice some anxiety in your writing today. It's completely natural to feel this way when we're uncertain about what's ahead.";
         } else if (detectedMoods.includes("sad")) {
-          observations = "Sadness is a natural emotion that helps process difficult experiences. It often signals a need for self-compassion.";
+          observations = "Your words suggest you've been feeling down. It's okay to sit with these feelings - they're part of being human.";
         } else if (detectedMoods.includes("tired")) {
-          observations = "Feeling tired may indicate a need for better work-life balance or more restorative activities.";
+          observations = "You seem to be feeling drained today. Your body might be telling you it's time for some extra rest and care.";
         } else if (detectedMoods.includes("overwhelmed")) {
-          observations = "Feeling overwhelmed suggests you might be taking on too much. Prioritization and delegation could help.";
+          observations = "It looks like you're carrying a lot right now. That's a heavy load, and it's okay to ask for help or take a step back.";
         } else if (detectedMoods.includes("happy") || detectedMoods.includes("grateful")) {
-          observations = "Positive emotions like happiness and gratitude are indicators of well-being and satisfaction with life.";
+          observations = "Your words radiate positivity today! Moments like these are precious - savor them and let them fuel you during tougher times.";
         } else {
-          observations = "Recognizing your emotional patterns helps build self-awareness and emotional intelligence.";
+          observations = "Your emotional landscape seems complex today. That's perfectly normal - we rarely feel just one thing at a time.";
         }
         
         const moodText = detectedMoods
           .map(mood => mood)
           .join(", ");
         
-        setMoodInsights(`Key emotions detected: ${moodText}. ${observations}`);
+        setMoodInsights(`I noticed feelings of ${moodText} in your writing. ${observations}`);
       } else {
-        setMoodInsights("Your entries don't show strong emotional indicators. This emotional balance suggests stability in your daily life.");
+        setMoodInsights("Your entries today show a nice emotional balance. You seem to be in a peaceful state of mind, which is wonderful.");
       }
       
       setIsAnalyzing(false);
