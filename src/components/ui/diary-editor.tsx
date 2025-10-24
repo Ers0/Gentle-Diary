@@ -4,9 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { Save, Calendar, Heart, BookOpen } from "lucide-react";
+import { Save, Calendar, Heart } from "lucide-react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,48 +17,23 @@ interface DiaryEntry {
   bookId?: string;
 }
 
-interface Book {
-  id: string;
-  name: string;
-  createdAt: Date;
-}
-
 interface DiaryEditorProps {
   entry?: DiaryEntry;
   onSave?: (entry: DiaryEntry) => void;
+  currentBookId?: string;
 }
 
-export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
+export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry?.content || "");
   const [selectedMood, setSelectedMood] = useState<number | null>(entry?.mood || null);
-  const [selectedBookId, setSelectedBookId] = useState<string | undefined>(entry?.bookId);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUnsavedChanges = useRef(false);
 
-  // Load books from localStorage
-  const [books, setBooks] = useState<Book[]>(() => {
-    const savedBooks = localStorage.getItem("diaryBooks");
-    if (savedBooks) {
-      try {
-        const parsedBooks = JSON.parse(savedBooks);
-        // Convert date strings back to Date objects
-        return parsedBooks.map((book: any) => ({
-          ...book,
-          createdAt: new Date(book.createdAt)
-        }));
-      } catch (e) {
-        console.error("Failed to parse saved books", e);
-        return [];
-      }
-    }
-    return [];
-  });
-
   // Auto-save when content changes (debounced)
   useEffect(() => {
-    if (content !== (entry?.content || "") || selectedMood !== (entry?.mood || null) || selectedBookId !== entry?.bookId) {
+    if (content !== (entry?.content || "") || selectedMood !== (entry?.mood || null)) {
       hasUnsavedChanges.current = true;
       
       // Clear existing timeout
@@ -79,7 +53,7 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [content, selectedMood, selectedBookId]);
+  }, [content, selectedMood]);
 
   // Save when component unmounts
   useEffect(() => {
@@ -99,14 +73,14 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
         date: entry?.date || new Date(),
         content,
         mood: selectedMood,
-        bookId: selectedBookId
+        bookId: currentBookId // Always use the current book ID
       };
       
       onSave(entryToSave);
       hasUnsavedChanges.current = false;
       
       toast({
-        title: "Saved",
+        title: "Entry saved",
         description: "",
       });
     }
@@ -115,8 +89,8 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
   const handleManualSave = () => {
     if (!content.trim() && !entry?.content) {
       toast({
-        title: "Empty Entry",
-        description: "Please write something",
+        title: "Empty entry",
+        description: "Please write something first",
         variant: "destructive",
       });
       return;
@@ -130,7 +104,7 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
         date: entry?.date || new Date(),
         content,
         mood: selectedMood,
-        bookId: selectedBookId
+        bookId: currentBookId // Always use the current book ID
       };
       
       onSave(entryToSave);
@@ -142,7 +116,7 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
       }
       
       toast({
-        title: "Saved",
+        title: "Entry saved",
         description: "",
       });
       
@@ -176,23 +150,6 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
               onMoodSelect={handleMoodSelect} 
             />
           </div>
-          <div className="mb-5">
-            <label className="text-sm font-medium mb-2 block">Organize in Book</label>
-            <Select value={selectedBookId || "none"} onValueChange={(value) => setSelectedBookId(value === "none" ? undefined : value)}>
-              <SelectTrigger className="rounded-full">
-                <SelectValue placeholder="Select a book" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No book</SelectItem>
-                {books.map((book) => (
-                  <SelectItem key={book.id} value={book.id} className="flex items-center">
-                    <BookOpen className="h-4 w-4 mr-2 text-muted-foreground inline" />
-                    {book.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="space-y-4">
             <Textarea
               placeholder="Write your thoughts here..."
@@ -202,12 +159,12 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
             />
             <div className="flex justify-end">
               <Button 
-                className="rounded-full px-5 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary"
+                className="rounded-full px-5 bg-primary hover:bg-primary/90"
                 onClick={handleManualSave}
                 disabled={isSaving}
               >
                 <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save"}
+                {isSaving ? "Saving..." : "Save Entry"}
               </Button>
             </div>
           </div>

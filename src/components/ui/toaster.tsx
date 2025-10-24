@@ -20,18 +20,18 @@ export function Toaster() {
           <Toast 
             key={id} 
             {...props} 
-            className="rounded-full p-3 border-0 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-top-full"
+            className="rounded-full p-3 border-0 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-bottom-full data-[state=open]:sm:slide-in-from-bottom-full bg-primary text-primary-foreground"
           >
             <div className="flex items-center gap-2">
               {title && <ToastTitle className="text-sm font-medium">{title}</ToastTitle>}
               {description && (
-                <ToastDescription className="text-xs text-muted-foreground">
+                <ToastDescription className="text-xs text-primary-foreground/80">
                   {description}
                 </ToastDescription>
               )}
             </div>
             {action}
-            <ToastClose className="rounded-full" />
+            <ToastClose className="text-primary-foreground/80 hover:text-primary-foreground" />
           </Toast>
         );
       })}

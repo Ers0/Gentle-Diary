@@ -266,6 +266,7 @@ const Diary = () => {
             <DiaryEditor 
               entry={currentEntry} 
               onSave={handleSaveEntry} 
+              currentBookId={currentBook?.id}
             />
           ) : (
             <div className="max-w-2xl mx-auto">
