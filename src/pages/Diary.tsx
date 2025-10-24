@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, Heart } from "lucide-react";
+import { Search, Plus, FileText, Heart, FolderPlus, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 
 interface DiaryEntry {
@@ -13,6 +13,13 @@ interface DiaryEntry {
   date: Date;
   content: string;
   mood?: number | null;
+  bookId?: string;
+}
+
+interface Book {
+  id: string;
+  name: string;
+  createdAt: Date;
 }
 
 const Diary = () => {
@@ -46,14 +53,40 @@ const Diary = () => {
       }
     ];
   });
+
+  const [books, setBooks] = useState<Book[]>(() => {
+    const savedBooks = localStorage.getItem("diaryBooks");
+    if (savedBooks) {
+      try {
+        const parsedBooks = JSON.parse(savedBooks);
+        // Convert date strings back to Date objects
+        return parsedBooks.map((book: any) => ({
+          ...book,
+          createdAt: new Date(book.createdAt)
+        }));
+      } catch (e) {
+        console.error("Failed to parse saved books", e);
+        return [];
+      }
+    }
+    return [];
+  });
   
   const [currentEntry, setCurrentEntry] = useState<DiaryEntry | null>(null);
+  const [currentBook, setCurrentBook] = useState<Book | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddingBook, setIsAddingBook] = useState(false);
+  const [newBookName, setNewBookName] = useState("");
 
   // Save entries to localStorage whenever they change
   React.useEffect(() => {
     localStorage.setItem("diaryEntries", JSON.stringify(entries));
   }, [entries]);
+
+  // Save books to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem("diaryBooks", JSON.stringify(books));
+  }, [books]);
 
   const handleSaveEntry = (entry: DiaryEntry) => {
     if (entries.some(e => e.id === entry.id)) {
@@ -71,7 +104,8 @@ const Diary = () => {
       id: Date.now().toString(),
       date: new Date(),
       content: "",
-      mood: null
+      mood: null,
+      bookId: currentBook?.id
     });
   };
 
@@ -83,10 +117,32 @@ const Diary = () => {
     setCurrentEntry(null);
   };
 
-  const filteredEntries = entries.filter(entry => 
-    entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    format(entry.date, "MMMM d, yyyy").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleCreateBook = () => {
+    if (newBookName.trim()) {
+      const newBook: Book = {
+        id: Date.now().toString(),
+        name: newBookName.trim(),
+        createdAt: new Date()
+      };
+      setBooks([...books, newBook]);
+      setNewBookName("");
+      setIsAddingBook(false);
+    }
+  };
+
+  const filteredEntries = entries.filter(entry => {
+    const matchesSearch = entry.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      format(entry.date, "MMMM d, yyyy").toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesBook = currentBook ? entry.bookId === currentBook.id : true;
+    
+    return matchesSearch && matchesBook;
+  });
+
+  const bookEntries = books.map(book => ({
+    ...book,
+    entryCount: entries.filter(entry => entry.bookId === book.id).length
+  }));
 
   return (
     <div className="flex h-screen bg-background">
@@ -111,6 +167,76 @@ const Diary = () => {
             />
           </div>
         </div>
+        <div className="px-3 py-2">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-between rounded-full text-left"
+            onClick={() => setCurrentBook(null)}
+          >
+            <span>All Entries</span>
+            <span className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-0.5">
+              {entries.length}
+            </span>
+          </Button>
+        </div>
+        <div className="px-3 py-1">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-1">Books</h3>
+          <div className="space-y-1">
+            {bookEntries.map(book => (
+              <Button
+                key={book.id}
+                variant={currentBook?.id === book.id ? "secondary" : "ghost"}
+                className="w-full justify-between rounded-full text-left"
+                onClick={() => setCurrentBook(book)}
+              >
+                <div className="flex items-center">
+                  <BookOpen className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="truncate">{book.name}</span>
+                </div>
+                <span className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-0.5">
+                  {book.entryCount}
+                </span>
+              </Button>
+            ))}
+            {isAddingBook ? (
+              <div className="px-3 py-2">
+                <Input
+                  placeholder="Book name"
+                  value={newBookName}
+                  onChange={(e) => setNewBookName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateBook()}
+                  className="rounded-full text-sm mb-2"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" className="rounded-full flex-1" onClick={handleCreateBook}>
+                    Save
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="rounded-full flex-1"
+                    onClick={() => {
+                      setIsAddingBook(false);
+                      setNewBookName("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                className="w-full justify-start rounded-full text-left text-muted-foreground"
+                onClick={() => setIsAddingBook(true)}
+              >
+                <FolderPlus className="h-4 w-4 mr-2" />
+                New Book
+              </Button>
+            )}
+          </div>
+        </div>
         <div className="flex-1 overflow-y-auto">
           <Sidebar entries={filteredEntries} onViewEntry={handleViewEntry} />
         </div>
@@ -126,9 +252,7 @@ const Diary = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="border-b border-border/50 p-4 flex items-center justify-between">
           <h2 className="text-lg font-medium">
-            {currentEntry 
-              ? format(currentEntry.date, "MMMM d, yyyy") 
-              : "Welcome to your Diary"}
+            {currentBook ? currentBook.name : "All Entries"}
           </h2>
           {currentEntry && (
             <Button variant="outline" size="sm" className="rounded-full" onClick={handleBackToList}>
@@ -149,13 +273,13 @@ const Diary = () => {
                 <div className="bg-primary/15 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                   <Heart className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Your Gentle Diary</h3>
+                <h3 className="text-2xl font-bold mb-3">How are you feeling today?</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  A cozy space for your thoughts, feelings, and memories
+                  Take a moment to reflect on your thoughts and emotions
                 </p>
                 <Button size="lg" className="rounded-full px-6 bg-primary hover:bg-primary/90" onClick={handleNewEntry}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Entry
+                  Write an Entry
                 </Button>
               </div>
               
