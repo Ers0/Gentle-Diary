@@ -1,91 +1,98 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-interface MoodDataPoint {
+interface MoodData {
   date: string;
   mood: number;
 }
 
 interface MoodChartProps {
-  data: MoodDataPoint[];
+  data: MoodData[];
 }
 
-export function MoodChart({ data }: MoodChartProps) {
-  // Map mood numbers to labels
-  const moodLabels: Record<number, string> = {
-    1: "Happy",
-    2: "Excited",
-    3: "Neutral",
-    4: "Sad",
-    5: "Angry"
+const MoodChart: React.FC<MoodChartProps> = ({ data }) => {
+  // Mood labels for Y-axis
+  const moodLabels = ["", "Happy", "Excited", "Neutral", "Sad", "Angry"];
+  
+  // Color mapping for moods
+  const moodColors = ["", "#10B981", "#FBBF24", "#9CA3AF", "#3B82F6", "#EF4444"];
+  
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border/50 p-3 rounded-lg shadow-lg">
+          <p className="font-medium">{label}</p>
+          <p className="text-sm">
+            Mood: <span className="font-medium">{moodLabels[payload[0].value]}</span>
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
-
-  const moodColors: Record<number, string> = {
-    1: "#fbbf24", // Happy - yellow
-    2: "#ec4899", // Excited - pink
-    3: "#9ca3af", // Neutral - gray
-    4: "#3b82f6", // Sad - blue
-    5: "#ef4444"  // Angry - red
-  };
-
-  const chartData = data.map(item => ({
-    ...item,
-    moodLabel: moodLabels[item.mood],
-    moodColor: moodColors[item.mood]
-  }));
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Mood Trends</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="bg-card rounded-xl border border-border/50 p-6 shadow-sm">
+      <h3 className="text-lg font-semibold mb-4">Mood Trends</h3>
+      {data.length > 0 ? (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis 
+                dataKey="date" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              />
               <YAxis 
-                domain={[0, 6]} 
+                domain={[0.5, 5.5]} 
                 tickCount={6}
-                tickFormatter={(value) => moodLabels[value] || value}
+                axisLine={false} 
+                tickLine={false}
+                tickFormatter={(value) => moodLabels[value] || ""}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                reversed={true}
               />
-              <Tooltip 
-                formatter={(value) => [moodLabels[Number(value)], "Mood"]}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Bar 
-                dataKey="mood" 
-                name="Mood"
-                fill="#8884d8"
-                label={{ position: 'top', formatter: (value) => moodLabels[Number(value)] }}
-              >
-                {chartData.map((entry, index) => (
-                  <rect 
-                    key={`bar-${index}`} 
-                    fill={entry.moodColor} 
-                    x={0} 
-                    y={0} 
-                    width={30} 
-                    height={30} 
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="mood" radius={[4, 4, 0, 0]}>
+                {data.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={moodColors[entry.mood]} 
+                    className="hover:opacity-80 transition-opacity"
                   />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </CardContent>
-    </Card>
+      ) : (
+        <div className="h-80 flex items-center justify-center">
+          <p className="text-muted-foreground">No mood data yet. Start tracking your moods to see trends!</p>
+        </div>
+      )}
+      
+      {/* Mood Legend */}
+      <div className="flex flex-wrap gap-4 mt-6 justify-center">
+        {moodLabels.slice(1).map((label, index) => (
+          <div key={index} className="flex items-center">
+            <div 
+              className="w-3 h-3 rounded-full mr-2" 
+              style={{ backgroundColor: moodColors[index + 1] }}
+            />
+            <span className="text-sm text-muted-foreground">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-}
+};
+
+export { MoodChart };
