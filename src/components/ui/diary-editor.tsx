@@ -62,13 +62,8 @@ export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEdit
       if (hasUnsavedChanges.current && (content.trim() || entry?.content)) {
         handleAutoSave();
       }
-      
-      // Call onLeave if it exists (when user explicitly closes the entry)
-      if (onLeave) {
-        onLeave();
-      }
     };
-  }, [content, entry, onLeave]);
+  }, [content, entry]);
 
   const handleAutoSave = () => {
     if (!hasUnsavedChanges.current || (!content.trim() && !entry?.content)) return;

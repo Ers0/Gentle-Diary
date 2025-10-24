@@ -267,7 +267,6 @@ const Diary = () => {
               entry={currentEntry} 
               onSave={handleSaveEntry} 
               currentBookId={currentBook?.id}
-              onLeave={handleBackToList}
             />
           ) : (
             <div className="max-w-2xl mx-auto">
