@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface MoodData {
   date: string;
@@ -13,85 +13,74 @@ interface MoodChartProps {
 }
 
 const MoodChart: React.FC<MoodChartProps> = ({ data }) => {
-  // Mood labels for Y-axis
-  const moodLabels = ["", "Happy", "Excited", "Neutral", "Sad", "Angry"];
+  // Get the most recent mood entry
+  const currentMood = data.length > 0 ? data[data.length - 1].mood : null;
   
-  // Color mapping for moods
-  const moodColors = ["", "#10B981", "#FBBF24", "#9CA3AF", "#3B82F6", "#EF4444"];
+  // Mood spectrum labels
+  const moodSpectrum = [
+    { label: "Awful", value: 5, color: "bg-red-500" },
+    { label: "Bad", value: 4, color: "bg-orange-500" },
+    { label: "Okay", value: 3, color: "bg-yellow-500" },
+    { label: "Good", value: 2, color: "bg-lime-500" },
+    { label: "Great", value: 1, color: "bg-green-500" }
+  ];
   
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border border-border/50 p-3 rounded-lg shadow-lg">
-          <p className="font-medium">{label}</p>
-          <p className="text-sm">
-            Mood: <span className="font-medium">{moodLabels[payload[0].value]}</span>
-          </p>
-        </div>
-      );
-    }
-    return null;
+  // Calculate position for the indicator (0-100%)
+  const calculatePosition = (mood: number) => {
+    // Mood values: 1 (Happy/Great) to 5 (Angry/Awful)
+    // We want 1 to be at 100% (right) and 5 at 0% (left)
+    return ((5 - mood) / 4) * 100;
   };
-
+  
   return (
-    <div className="bg-card rounded-xl border border-border/50 p-6 shadow-sm">
-      <h3 className="text-lg font-semibold mb-4">Mood Trends</h3>
-      {data.length > 0 ? (
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-              />
-              <YAxis 
-                domain={[0.5, 5.5]} 
-                tickCount={6}
-                axisLine={false} 
-                tickLine={false}
-                tickFormatter={(value) => moodLabels[value] || ""}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                reversed={true}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="mood" radius={[4, 4, 0, 0]}>
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={moodColors[entry.mood]} 
-                    className="hover:opacity-80 transition-opacity"
-                  />
+    <Card className="border-border/50 shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-lg">Current Mood Position</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {currentMood ? (
+          <div className="space-y-6">
+            <div className="relative">
+              {/* Mood spectrum bar */}
+              <div className="h-4 bg-gradient-to-r from-red-500 via-orange-500 via-yellow-500 via-lime-500 to-green-500 rounded-full overflow-hidden">
+                {/* Indicator */}
+                <div 
+                  className="absolute top-0 w-6 h-6 -mt-1 -ml-3 flex items-center justify-center"
+                  style={{ left: `${calculatePosition(currentMood)}%` }}
+                >
+                  <div className="w-4 h-4 bg-white rounded-full border-2 border-primary shadow-lg"></div>
+                </div>
+              </div>
+              
+              {/* Labels */}
+              <div className="flex justify-between mt-2">
+                {moodSpectrum.map((item) => (
+                  <div 
+                    key={item.label} 
+                    className="text-xs text-muted-foreground flex flex-col items-center"
+                  >
+                    <div className={`w-2 h-2 rounded-full mb-1 ${item.color}`}></div>
+                    {item.label}
+                  </div>
                 ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <div className="h-80 flex items-center justify-center">
-          <p className="text-muted-foreground">No mood data yet. Start tracking your moods to see trends!</p>
-        </div>
-      )}
-      
-      {/* Mood Legend */}
-      <div className="flex flex-wrap gap-4 mt-6 justify-center">
-        {moodLabels.slice(1).map((label, index) => (
-          <div key={index} className="flex items-center">
-            <div 
-              className="w-3 h-3 rounded-full mr-2" 
-              style={{ backgroundColor: moodColors[index + 1] }}
-            />
-            <span className="text-sm text-muted-foreground">{label}</span>
+              </div>
+            </div>
+            
+            {/* Current mood display */}
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Your current mood is</p>
+              <p className="text-xl font-bold">
+                {moodSpectrum.find(m => m.value === currentMood)?.label || "Unknown"}
+              </p>
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
+        ) : (
+          <div className="h-32 flex items-center justify-center">
+            <p className="text-muted-foreground">No mood data yet. Start tracking your moods to see your position!</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
