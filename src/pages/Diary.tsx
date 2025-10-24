@@ -94,7 +94,9 @@ const Diary = () => {
       <div className="w-64 border-r bg-muted/20 flex flex-col">
         <div className="p-4 border-b border-border/50">
           <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+            <div className="bg-primary/15 p-2 rounded-full">
+              <Heart className="h-5 w-5 text-primary" />
+            </div>
             <h1 className="text-xl font-semibold">My Diary</h1>
           </div>
         </div>
@@ -113,7 +115,7 @@ const Diary = () => {
           <Sidebar entries={filteredEntries} onViewEntry={handleViewEntry} />
         </div>
         <div className="p-4 border-t border-border/50">
-          <Button className="w-full rounded-full" onClick={handleNewEntry}>
+          <Button className="w-full rounded-full bg-primary hover:bg-primary/90" onClick={handleNewEntry}>
             <Plus className="mr-2 h-4 w-4" />
             New Entry
           </Button>
@@ -129,7 +131,7 @@ const Diary = () => {
               : "Welcome to your Diary"}
           </h2>
           {currentEntry && (
-            <Button variant="ghost" size="sm" className="rounded-full" onClick={handleBackToList}>
+            <Button variant="outline" size="sm" className="rounded-full" onClick={handleBackToList}>
               Back to List
             </Button>
           )}
@@ -144,14 +146,14 @@ const Diary = () => {
           ) : (
             <div className="max-w-2xl mx-auto">
               <div className="text-center py-12">
-                <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
+                <div className="bg-primary/15 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
                   <Heart className="h-8 w-8 text-primary" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">Your Gentle Diary</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   A cozy space for your thoughts, feelings, and memories
                 </p>
-                <Button size="lg" className="rounded-full px-6" onClick={handleNewEntry}>
+                <Button size="lg" className="rounded-full px-6 bg-primary hover:bg-primary/90" onClick={handleNewEntry}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Your First Entry
                 </Button>
@@ -164,7 +166,7 @@ const Diary = () => {
                     {filteredEntries.map((entry) => (
                       <div 
                         key={entry.id} 
-                        className="border border-border/50 rounded-xl p-4 hover:bg-muted/30 cursor-pointer transition-colors"
+                        className="border border-border/50 rounded-xl p-4 hover:bg-muted/30 cursor-pointer transition-colors hover:border-primary/30"
                         onClick={() => handleViewEntry(entry)}
                       >
                         <div className="flex justify-between items-start">

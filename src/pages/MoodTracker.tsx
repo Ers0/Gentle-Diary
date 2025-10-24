@@ -50,7 +50,7 @@ const MoodTrackerPage = () => {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-2">
-          <div className="bg-primary/10 p-2 rounded-full">
+          <div className="bg-primary/15 p-2 rounded-full">
             <Heart className="h-5 w-5 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Mood Tracker</h1>
@@ -70,7 +70,7 @@ const MoodTrackerPage = () => {
                 onMoodSelect={setSelectedMood} 
               />
               <Button 
-                className="w-full rounded-full" 
+                className="w-full rounded-full bg-primary hover:bg-primary/90" 
                 onClick={handleSaveMood}
                 disabled={!selectedMood}
               >
@@ -87,7 +87,7 @@ const MoodTrackerPage = () => {
             <CardContent>
               <div className="space-y-3">
                 {moodEntries.slice(0, 5).map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between p-3 border border-border/50 rounded-lg">
+                  <div key={entry.id} className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:border-primary/30">
                     <div>
                       <p className="font-medium text-sm">
                         {format(entry.date, "MMM d")}

@@ -25,7 +25,7 @@ const Settings = () => {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-primary/10 p-2 rounded-full">
+          <div className="bg-primary/15 p-2 rounded-full">
             <Heart className="h-5 w-5 text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Settings</h1>
@@ -35,7 +35,7 @@ const Settings = () => {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
+                <div className="bg-primary/15 p-1.5 rounded-full">
                   <Heart className="h-4 w-4 text-primary" />
                 </div>
                 Appearance
@@ -60,8 +60,8 @@ const Settings = () => {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
-                  <Bell className="h-4 w-4 text-primary" />
+                <div className="bg-secondary/15 p-1.5 rounded-full">
+                  <Bell className="h-4 w-4 text-secondary" />
                 </div>
                 Notifications
               </CardTitle>
@@ -92,8 +92,8 @@ const Settings = () => {
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
-                  <User className="h-4 w-4 text-primary" />
+                <div className="bg-accent/15 p-1.5 rounded-full">
+                  <User className="h-4 w-4 text-accent" />
                 </div>
                 Account
               </CardTitle>
@@ -109,14 +109,14 @@ const Settings = () => {
                 <Input id="password" type="password" placeholder="••••••••" className="mt-1 rounded-lg" />
               </div>
               
-              <Button className="rounded-full px-5" onClick={handleSave}>Update Account</Button>
+              <Button className="rounded-full px-5 bg-primary hover:bg-primary/90" onClick={handleSave}>Update Account</Button>
             </CardContent>
           </Card>
           
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-                <div className="bg-destructive/10 p-1.5 rounded-full">
+                <div className="bg-destructive/15 p-1.5 rounded-full">
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </div>
                 Danger Zone
