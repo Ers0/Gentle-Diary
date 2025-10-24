@@ -16,23 +16,44 @@ interface DiaryEntry {
 }
 
 const Diary = () => {
-  const [entries, setEntries] = useState<DiaryEntry[]>([
-    {
-      id: "1",
-      date: new Date(),
-      content: "Today was a great day! I accomplished so much and felt really productive.",
-      mood: 1
-    },
-    {
-      id: "2",
-      date: new Date(Date.now() - 86400000),
-      content: "Feeling a bit overwhelmed with work today. Need to take some time for myself.",
-      mood: 4
+  const [entries, setEntries] = useState<DiaryEntry[]>(() => {
+    const savedEntries = localStorage.getItem("diaryEntries");
+    if (savedEntries) {
+      try {
+        const parsedEntries = JSON.parse(savedEntries);
+        // Convert date strings back to Date objects
+        return parsedEntries.map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.date)
+        }));
+      } catch (e) {
+        console.error("Failed to parse saved entries", e);
+        return [];
+      }
     }
-  ]);
+    return [
+      {
+        id: "1",
+        date: new Date(),
+        content: "Today was a great day! I accomplished so much and felt really productive.",
+        mood: 1
+      },
+      {
+        id: "2",
+        date: new Date(Date.now() - 86400000),
+        content: "Feeling a bit overwhelmed with work today. Need to take some time for myself.",
+        mood: 4
+      }
+    ];
+  });
   
   const [currentEntry, setCurrentEntry] = useState<DiaryEntry | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Save entries to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem("diaryEntries", JSON.stringify(entries));
+  }, [entries]);
 
   const handleSaveEntry = (entry: DiaryEntry) => {
     if (entries.some(e => e.id === entry.id)) {
@@ -86,7 +107,7 @@ const Diary = () => {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <Sidebar />
+          <Sidebar entries={filteredEntries} onViewEntry={handleViewEntry} />
         </div>
         <div className="p-4 border-t">
           <Button className="w-full" onClick={handleNewEntry}>
