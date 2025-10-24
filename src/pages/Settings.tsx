@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const handleSave = () => {
     toast({
@@ -37,7 +39,10 @@ const Settings = () => {
                     Toggle between light and dark themes
                   </p>
                 </div>
-                <ThemeToggle />
+                <Switch 
+                  checked={theme === "dark"} 
+                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} 
+                />
               </div>
             </CardContent>
           </Card>
