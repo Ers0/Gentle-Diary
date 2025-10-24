@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
+import { Heart, Bell, User, Trash2 } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -24,12 +24,22 @@ const Settings = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Settings</h1>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-primary/10 p-2 rounded-full">
+            <Heart className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold">Settings</h1>
+        </div>
         
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appearance</CardTitle>
+        <div className="space-y-5">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="bg-primary/10 p-1.5 rounded-full">
+                  <Heart className="h-4 w-4 text-primary" />
+                </div>
+                Appearance
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -47,9 +57,14 @@ const Settings = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Notifications</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="bg-primary/10 p-1.5 rounded-full">
+                  <Bell className="h-4 w-4 text-primary" />
+                </div>
+                Notifications
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -74,38 +89,50 @@ const Settings = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Account</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="bg-primary/10 p-1.5 rounded-full">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                Account
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="your@email.com" className="mt-1" />
+                <Input id="email" type="email" placeholder="your@email.com" className="mt-1 rounded-lg" />
               </div>
               
               <div>
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="••••••••" className="mt-1" />
+                <Input id="password" type="password" placeholder="••••••••" className="mt-1 rounded-lg" />
               </div>
               
-              <Button onClick={handleSave}>Update Account</Button>
+              <Button className="rounded-full px-5" onClick={handleSave}>Update Account</Button>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Danger Zone</CardTitle>
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+                <div className="bg-destructive/10 p-1.5 rounded-full">
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </div>
+                Danger Zone
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-destructive">Delete Account</h3>
+                  <h3 className="font-medium">Delete Account</h3>
                   <p className="text-sm text-muted-foreground">
                     Permanently delete your account and all data
                   </p>
                 </div>
-                <Button variant="destructive">Delete Account</Button>
+                <Button variant="destructive" className="rounded-full">
+                  Delete Account
+                </Button>
               </div>
             </CardContent>
           </Card>

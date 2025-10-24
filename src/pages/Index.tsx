@@ -1,74 +1,59 @@
-// Update this page (the content is just a fallback if you fail to update the page)
-
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BookOpen, Smile, Calendar } from "lucide-react";
+import { BookOpen, Smile, Calendar, Heart } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">
+      <div className="container mx-auto px-4 py-16 flex-1 flex flex-col justify-center">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Your Personal Diary & Mood Tracker</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Capture your thoughts, track your emotions, and reflect on your journey - all in one beautiful app.
+          <div className="flex justify-center mb-6">
+            <div className="bg-primary/10 p-4 rounded-full">
+              <Heart className="h-12 w-12 text-primary" />
+            </div>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Your Gentle Diary</h1>
+          <p className="text-lg text-muted-foreground max-w-md mx-auto mb-8">
+            A cozy space for your thoughts and feelings
           </p>
-          <div className="flex justify-center gap-4">
-            <Button size="lg" asChild>
-              <Link to="/diary">Get Started</Link>
+          <div className="flex justify-center gap-3">
+            <Button size="lg" className="rounded-full px-6" asChild>
+              <Link to="/diary">Start Writing</Link>
             </Button>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-16">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <BookOpen className="h-12 w-12 text-primary mb-4 mx-auto" />
-              <CardTitle className="text-center">Digital Journal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                Write your thoughts, experiences, and reflections with our distraction-free editor.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16">
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+            <BookOpen className="h-8 w-8 text-primary mx-auto mb-3" />
+            <h3 className="font-medium mb-2">Digital Journal</h3>
+            <p className="text-sm text-muted-foreground">
+              Write your thoughts in a distraction-free space
+            </p>
+          </div>
 
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <Smile className="h-12 w-12 text-primary mb-4 mx-auto" />
-              <CardTitle className="text-center">Mood Tracking</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                Monitor your emotional well-being with our intuitive mood tracking system.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+            <Smile className="h-8 w-8 text-primary mx-auto mb-3" />
+            <h3 className="font-medium mb-2">Mood Tracking</h3>
+            <p className="text-sm text-muted-foreground">
+              Gently monitor your emotional well-being
+            </p>
+          </div>
 
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <Calendar className="h-12 w-12 text-primary mb-4 mx-auto" />
-              <CardTitle className="text-center">Daily Reflection</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                Build a habit of daily reflection and personal growth.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+            <Calendar className="h-8 w-8 text-primary mx-auto mb-3" />
+            <h3 className="font-medium mb-2">Daily Reflection</h3>
+            <p className="text-sm text-muted-foreground">
+              Build a habit of mindful reflection
+            </p>
+          </div>
         </div>
 
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">Designed for Your Well-being</h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Our diary app combines the best of journaling and mood tracking in a clean, 
-            Evernote-inspired interface that helps you focus on what matters most - your thoughts and feelings.
+        <div className="max-w-md mx-auto text-center">
+          <p className="text-muted-foreground text-sm">
+            A peaceful corner of the internet just for you
           </p>
-          <Button size="lg" variant="outline" asChild>
-            <Link to="/diary">Start Your Journey</Link>
-          </Button>
         </div>
       </div>
       <MadeWithDyad />

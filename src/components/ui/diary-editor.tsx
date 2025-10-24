@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Save, Calendar } from "lucide-react";
+import { Save, Calendar, Heart } from "lucide-react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,19 +58,22 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-2xl font-bold">
+    <div className="space-y-6 max-w-2xl mx-auto">
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border/50">
+          <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <div className="bg-primary/10 p-1.5 rounded-full">
+              <Heart className="h-4 w-4 text-primary" />
+            </div>
             {entry ? format(entry.date, "MMMM d, yyyy") : "New Entry"}
           </CardTitle>
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
+          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
             <span>{entry ? format(entry.date, "h:mm a") : format(new Date(), "h:mm a")}</span>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="mb-6">
+        <CardContent className="pt-5">
+          <div className="mb-5">
             <MoodTracker 
               selectedMood={selectedMood} 
               onMoodSelect={handleMoodSelect} 
@@ -79,12 +82,12 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
           <div className="space-y-4">
             <Textarea
               placeholder="Write your thoughts here..."
-              className="min-h-[300px] text-lg"
+              className="min-h-[250px] text-base border-border/50 rounded-xl"
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
             <div className="flex justify-end">
-              <Button onClick={handleSave}>
+              <Button className="rounded-full px-5" onClick={handleSave}>
                 <Save className="mr-2 h-4 w-4" />
                 Save Entry
               </Button>
