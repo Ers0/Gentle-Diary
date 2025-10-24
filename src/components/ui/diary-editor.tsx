@@ -41,10 +41,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         clearTimeout(saveTimeoutRef.current);
       }
       
-      // Set new timeout to save after 10 seconds of inactivity
+      // Set new timeout to save after 3 seconds of inactivity
       saveTimeoutRef.current = setTimeout(() => {
         handleAutoSave();
-      }, 10000);
+      }, 3000);
     }
     
     // Cleanup function
@@ -62,7 +62,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         handleAutoSave();
       }
     };
-  }, []);
+  }, [content, entry]);
 
   const handleAutoSave = () => {
     if (!hasUnsavedChanges.current || (!content.trim() && !entry?.content)) return;
