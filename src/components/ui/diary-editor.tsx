@@ -31,8 +31,6 @@ export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEdit
   const { toast } = useToast();
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUnsavedChanges = useRef(false);
-  const hasAutoSaved = useRef(false);
-  const autoSavedEntryRef = useRef<DiaryEntry | null>(null);
 
   // Auto-save when content changes (debounced)
   useEffect(() => {
@@ -65,12 +63,9 @@ export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEdit
         handleAutoSave();
       }
       
-      // Show toast when leaving if we auto-saved
-      if (hasAutoSaved.current && onLeave) {
-        toast({
-          title: "Entry auto-saved",
-          description: "",
-        });
+      // Call onLeave if it exists (when user explicitly closes the entry)
+      if (onLeave) {
+        onLeave();
       }
     };
   }, [content, entry, onLeave]);
@@ -89,8 +84,6 @@ export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEdit
       
       onSave(entryToSave);
       hasUnsavedChanges.current = false;
-      hasAutoSaved.current = true;
-      autoSavedEntryRef.current = entryToSave;
     }
   };
 
