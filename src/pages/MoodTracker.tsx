@@ -1,18 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
 import { MoodChart } from "@/components/ui/mood-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Save, Heart } from "lucide-react";
+import { Save, Heart, Sparkles, Brain } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface MoodEntry {
   id: string;
   date: Date;
   mood: number;
   note?: string;
+}
+
+interface DiaryEntry {
+  id: string;
+  date: Date;
+  content: string;
+  mood?: number | null;
 }
 
 const MoodTrackerPage = () => {
@@ -24,6 +32,29 @@ const MoodTrackerPage = () => {
     { id: "4", date: new Date(Date.now() - 3 * 86400000), mood: 4 },
     { id: "5", date: new Date(Date.now() - 4 * 86400000), mood: 1 },
   ]);
+  
+  const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
+  const [moodInsights, setMoodInsights] = useState<string>("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { toast } = useToast();
+
+  // Load diary entries from localStorage
+  useEffect(() => {
+    const savedEntries = localStorage.getItem("diaryEntries");
+    if (savedEntries) {
+      try {
+        const parsedEntries = JSON.parse(savedEntries);
+        // Convert date strings back to Date objects
+        const entriesWithDates = parsedEntries.map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.date)
+        }));
+        setDiaryEntries(entriesWithDates);
+      } catch (e) {
+        console.error("Failed to parse saved entries", e);
+      }
+    }
+  }, []);
 
   const handleSaveMood = () => {
     if (selectedMood) {
@@ -35,6 +66,11 @@ const MoodTrackerPage = () => {
       
       setMoodEntries([newEntry, ...moodEntries]);
       setSelectedMood(null);
+      
+      toast({
+        title: "Mood saved",
+        description: "Your mood has been recorded for today.",
+      });
     }
   };
 
@@ -45,6 +81,81 @@ const MoodTrackerPage = () => {
       date: format(entry.date, "MMM d"),
       mood: entry.mood
     }));
+
+  // Get today's diary entries
+  const getTodaysEntries = () => {
+    const today = new Date();
+    return diaryEntries.filter(entry => 
+      entry.date.getDate() === today.getDate() &&
+      entry.date.getMonth() === today.getMonth() &&
+      entry.date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // AI Mood Analysis function
+  const analyzeMood = () => {
+    setIsAnalyzing(true);
+    
+    // Simulate AI analysis delay
+    setTimeout(() => {
+      const todaysEntries = getTodaysEntries();
+      
+      if (todaysEntries.length === 0) {
+        setMoodInsights("No diary entries found for today. Write an entry to get personalized mood insights!");
+        setIsAnalyzing(false);
+        return;
+      }
+      
+      // Combine all today's entries for analysis
+      const combinedContent = todaysEntries.map(entry => entry.content).join(" ");
+      
+      // Simple keyword-based mood analysis (simulating AI)
+      const keywords = {
+        frustrated: ["frustrated", "annoyed", "irritated", "stuck", "difficult", "challenging"],
+        anxious: ["anxious", "worried", "nervous", "stress", "concern", "tense"],
+        happy: ["happy", "joy", "excited", "pleased", "delighted", "wonderful"],
+        sad: ["sad", "depressed", "down", "blue", "unhappy", "miserable"],
+        tired: ["tired", "exhausted", "fatigued", "drained", "weary"],
+        grateful: ["grateful", "thankful", "appreciate", "blessed", "fortunate"],
+        overwhelmed: ["overwhelmed", "burdened", "swamped", "drowning", "pressure"]
+      };
+      
+      const detectedMoods: string[] = [];
+      
+      // Check for each mood keyword
+      Object.entries(keywords).forEach(([mood, words]) => {
+        const found = words.some(word => 
+          combinedContent.toLowerCase().includes(word.toLowerCase())
+        );
+        
+        if (found) {
+          detectedMoods.push(mood);
+        }
+      });
+      
+      // Generate insights based on detected moods
+      if (detectedMoods.length > 0) {
+        const moodText = detectedMoods
+          .map(mood => `feels ${mood}`)
+          .join(", ");
+        
+        setMoodInsights(`Based on today's entries, it seems you ${moodText}. Consider taking some time for self-care.`);
+      } else {
+        setMoodInsights("Your entries don't show strong emotional indicators. Keep journaling to track your feelings over time!");
+      }
+      
+      setIsAnalyzing(false);
+    }, 1500);
+  };
+
+  // Mood descriptions for display
+  const moodDescriptions = [
+    { id: 1, label: "Happy", description: "Feeling joyful and content" },
+    { id: 2, label: "Excited", description: "Full of energy and enthusiasm" },
+    { id: 3, label: "Neutral", description: "Balanced and calm" },
+    { id: 4, label: "Sad", description: "Feeling down or blue" },
+    { id: 5, label: "Angry", description: "Feeling irritated or upset" }
+  ];
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -98,11 +209,7 @@ const MoodTrackerPage = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-sm">
-                        {entry.mood === 1 && "Happy"}
-                        {entry.mood === 2 && "Excited"}
-                        {entry.mood === 3 && "Neutral"}
-                        {entry.mood === 4 && "Sad"}
-                        {entry.mood === 5 && "Angry"}
+                        {moodDescriptions.find(m => m.id === entry.mood)?.label}
                       </p>
                     </div>
                   </div>
@@ -111,6 +218,42 @@ const MoodTrackerPage = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* AI Mood Analysis Section */}
+        <Card className="mt-6 border-border/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="bg-secondary/15 p-1.5 rounded-full">
+                <Brain className="h-4 w-4 text-secondary" />
+              </div>
+              AI Mood Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-muted-foreground">
+                Get personalized insights based on your diary entries
+              </p>
+              
+              <Button 
+                className="rounded-full bg-secondary hover:bg-secondary/90"
+                onClick={analyzeMood}
+                disabled={isAnalyzing}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {isAnalyzing ? "Analyzing..." : "Analyze Today's Mood"}
+              </Button>
+              
+              {moodInsights && (
+                <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+                  <p className="text-sm">
+                    <span className="font-medium">Insight:</span> {moodInsights}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
         
         <div className="mt-6">
           <MoodChart data={chartData} />
