@@ -3,6 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Smile, Frown, Meh, Heart, Angry } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface MoodTrackerProps {
   selectedMood: number | null;
@@ -18,6 +19,17 @@ const moodOptions = [
 ];
 
 export function MoodTracker({ selectedMood, onMoodSelect }: MoodTrackerProps) {
+  const { toast } = useToast();
+
+  const handleMoodSelect = (moodId: number) => {
+    onMoodSelect(moodId);
+    const moodLabel = moodOptions.find(m => m.id === moodId)?.label || "";
+    toast({
+      title: `${moodLabel} mood selected`,
+      description: "",
+    });
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -41,7 +53,7 @@ export function MoodTracker({ selectedMood, onMoodSelect }: MoodTrackerProps) {
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }
               `}
-              onClick={() => onMoodSelect(mood.id)}
+              onClick={() => handleMoodSelect(mood.id)}
             >
               <Icon className="h-5 w-5" />
               <span className="sr-only">{mood.label}</span>

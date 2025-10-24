@@ -77,8 +77,8 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
       hasUnsavedChanges.current = false;
       
       toast({
-        title: "Entry Auto-Saved",
-        description: "Your diary entry has been saved automatically.",
+        title: "Saved",
+        description: "",
       });
     }
   };
@@ -87,7 +87,7 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
     if (!content.trim() && !entry?.content) {
       toast({
         title: "Empty Entry",
-        description: "Please write something before saving.",
+        description: "Please write something",
         variant: "destructive",
       });
       return;
@@ -112,8 +112,8 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
       }
       
       toast({
-        title: "Entry Saved",
-        description: "Your diary entry has been saved.",
+        title: "Saved",
+        description: "",
       });
       
       setIsSaving(false);
@@ -160,7 +160,7 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
                 disabled={isSaving}
               >
                 <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save Entry"}
+                {isSaving ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>
