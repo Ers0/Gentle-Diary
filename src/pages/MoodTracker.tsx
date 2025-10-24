@@ -135,13 +135,32 @@ const MoodTrackerPage = () => {
       
       // Generate insights based on detected moods
       if (detectedMoods.length > 0) {
+        // Create specific advice based on detected moods
+        let advice = "";
+        
+        if (detectedMoods.includes("frustrated")) {
+          advice = "Try taking a break and doing something you enjoy. A short walk or listening to music can help reset your mindset.";
+        } else if (detectedMoods.includes("anxious")) {
+          advice = "Practice deep breathing exercises. Try the 4-7-8 technique: inhale for 4 counts, hold for 7, exhale for 8.";
+        } else if (detectedMoods.includes("sad")) {
+          advice = "Reach out to a friend or loved one. Social connection can help lift your spirits when you're feeling down.";
+        } else if (detectedMoods.includes("tired")) {
+          advice = "Prioritize rest tonight. Create a calming bedtime routine and aim to get 7-8 hours of sleep.";
+        } else if (detectedMoods.includes("overwhelmed")) {
+          advice = "Break your tasks into smaller steps. Focus on completing just one thing at a time to reduce the feeling of being overwhelmed.";
+        } else if (detectedMoods.includes("happy") || detectedMoods.includes("grateful")) {
+          advice = "Take a moment to savor this positive feeling. Consider writing down three things you're grateful for to amplify this positivity.";
+        } else {
+          advice = "Take a few minutes for self-care. Even a short meditation or stretching session can help you feel more centered.";
+        }
+        
         const moodText = detectedMoods
-          .map(mood => `feels ${mood}`)
+          .map(mood => mood)
           .join(", ");
         
-        setMoodInsights(`Based on today's entries, it seems you ${moodText}. Consider taking some time for self-care.`);
+        setMoodInsights(`Key emotions detected: ${moodText}. ${advice}`);
       } else {
-        setMoodInsights("Your entries don't show strong emotional indicators. Keep journaling to track your feelings over time!");
+        setMoodInsights("Your entries don't show strong emotional indicators. Keep journaling to track your feelings over time! For general wellness, try to spend a few minutes in nature or practice mindfulness.");
       }
       
       setIsAnalyzing(false);
