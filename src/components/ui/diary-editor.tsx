@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Save, Calendar, Heart } from "licide-react";
+import { Save, Calendar, Heart } from "lucide-react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
 import { useToast } from "@/hooks/use-toast";
 
