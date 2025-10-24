@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,18 +24,47 @@ interface DiaryEditorProps {
 export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
   const [content, setContent] = useState(entry?.content || "");
   const [selectedMood, setSelectedMood] = useState<number | null>(entry?.mood || null);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasUnsavedChanges = useRef(false);
 
-  const handleSave = () => {
-    if (!content.trim()) {
-      toast({
-        title: "Empty Entry",
-        description: "Please write something before saving.",
-        variant: "destructive",
-      });
-      return;
+  // Auto-save when content changes (debounced)
+  useEffect(() => {
+    if (content !== (entry?.content || "") || selectedMood !== (entry?.mood || null)) {
+      hasUnsavedChanges.current = true;
+      
+      // Clear existing timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      // Set new timeout to save after 10 seconds of inactivity
+      saveTimeoutRef.current = setTimeout(() => {
+        handleAutoSave();
+      }, 10000);
     }
+    
+    // Cleanup function
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [content, selectedMood]);
 
+  // Save when component unmounts
+  useEffect(() => {
+    return () => {
+      if (hasUnsavedChanges.current && (content.trim() || entry?.content)) {
+        handleAutoSave();
+      }
+    };
+  }, []);
+
+  const handleAutoSave = () => {
+    if (!hasUnsavedChanges.current || (!content.trim() && !entry?.content)) return;
+    
     if (onSave) {
       const entryToSave: DiaryEntry = {
         id: entry?.id || Date.now().toString(),
@@ -45,11 +74,49 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
       };
       
       onSave(entryToSave);
+      hasUnsavedChanges.current = false;
+      
+      toast({
+        title: "Entry Auto-Saved",
+        description: "Your diary entry has been saved automatically.",
+      });
+    }
+  };
+
+  const handleManualSave = () => {
+    if (!content.trim() && !entry?.content) {
+      toast({
+        title: "Empty Entry",
+        description: "Please write something before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (onSave) {
+      setIsSaving(true);
+      
+      const entryToSave: DiaryEntry = {
+        id: entry?.id || Date.now().toString(),
+        date: entry?.date || new Date(),
+        content,
+        mood: selectedMood,
+      };
+      
+      onSave(entryToSave);
+      hasUnsavedChanges.current = false;
+      
+      // Clear timeout since we're manually saving
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       
       toast({
         title: "Entry Saved",
-        description: "Your diary entry has been saved successfully.",
+        description: "Your diary entry has been saved.",
       });
+      
+      setIsSaving(false);
     }
   };
 
@@ -87,9 +154,13 @@ export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
               onChange={(e) => setContent(e.target.value)}
             />
             <div className="flex justify-end">
-              <Button className="rounded-full px-5" onClick={handleSave}>
+              <Button 
+                className="rounded-full px-5 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary"
+                onClick={handleManualSave}
+                disabled={isSaving}
+              >
                 <Save className="mr-2 h-4 w-4" />
-                Save Entry
+                {isSaving ? "Saving..." : "Save Entry"}
               </Button>
             </div>
           </div>
