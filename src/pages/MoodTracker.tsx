@@ -5,8 +5,8 @@ import { MoodTracker } from "@/components/ui/mood-tracker";
 import { MoodChart } from "@/components/ui/mood-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { Save, Heart, Sparkles, Brain } from "lucide-react";
+import { format, isSameDay, parseISO } from "date-fns";
+import { Save, Heart, Sparkles, Brain, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface MoodEntry {
@@ -23,6 +23,15 @@ interface DiaryEntry {
   mood?: number | null;
 }
 
+// Mood data structure
+const moodData = [
+  { id: 1, label: "Happy", color: "bg-green-500", emoji: "😊" },
+  { id: 2, label: "Excited", color: "bg-yellow-500", emoji: "😃" },
+  { id: 3, label: "Neutral", color: "bg-gray-500", emoji: "😐" },
+  { id: 4, label: "Sad", color: "bg-blue-500", emoji: "😢" },
+  { id: 5, label: "Angry", color: "bg-red-500", emoji: "😠" }
+];
+
 const MoodTrackerPage = () => {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([
@@ -36,6 +45,8 @@ const MoodTrackerPage = () => {
   const [diaryEntries, setDiaryEntries] = useState<DiaryEntry[]>([]);
   const [moodInsights, setMoodInsights] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [view, setView] = useState<"calendar" | "list">("calendar");
   const { toast } = useToast();
 
   // Load diary entries from localStorage
@@ -167,14 +178,79 @@ const MoodTrackerPage = () => {
     }, 1500);
   };
 
-  // Mood descriptions for display
-  const moodDescriptions = [
-    { id: 1, label: "Happy", description: "Feeling joyful and content" },
-    { id: 2, label: "Excited", description: "Full of energy and enthusiasm" },
-    { id: 3, label: "Neutral", description: "Balanced and calm" },
-    { id: 4, label: "Sad", description: "Feeling down or blue" },
-    { id: 5, label: "Angry", description: "Feeling irritated or upset" }
-  ];
+  // Get mood entries for a specific date
+  const getEntriesForDate = (date: Date) => {
+    return moodEntries.filter(entry => isSameDay(entry.date, date));
+  };
+
+  // Get predominant mood for a date
+  const getPredominantMood = (date: Date) => {
+    const entries = getEntriesForDate(date);
+    if (entries.length === 0) return null;
+    
+    // Count mood occurrences
+    const moodCounts: Record<number, number> = {};
+    entries.forEach(entry => {
+      moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+    });
+    
+    // Find mood with highest count
+    let maxCount = 0;
+    let predominantMood = entries[0].mood;
+    
+    Object.entries(moodCounts).forEach(([mood, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        predominantMood = parseInt(mood);
+      }
+    });
+    
+    return moodData.find(m => m.id === predominantMood) || null;
+  };
+
+  // Generate calendar days for current month
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    
+    // First day of month
+    const firstDay = new Date(year, month, 1);
+    // Last day of month
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // Days from previous month to show
+    const prevMonthDays = firstDay.getDay();
+    
+    // Total days to show (including next month)
+    const totalDays = 42; // 6 weeks
+    
+    const days = [];
+    
+    // Previous month days
+    for (let i = prevMonthDays - 1; i >= 0; i--) {
+      const date = new Date(year, month, -i);
+      days.push(date);
+    }
+    
+    // Current month days
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const date = new Date(year, month, i);
+      days.push(date);
+    }
+    
+    // Next month days
+    const remainingDays = totalDays - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      const date = new Date(year, month + 1, i);
+      days.push(date);
+    }
+    
+    return days;
+  };
+
+  // Get mood entries for selected date
+  const selectedDateEntries = selectedDate ? getEntriesForDate(selectedDate) : [];
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -211,29 +287,139 @@ const MoodTrackerPage = () => {
           </Card>
           
           <Card className="border-border/50 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Moods</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Mood History</CardTitle>
+              <div className="flex gap-2">
+                <Button 
+                  variant={view === "calendar" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full"
+                  onClick={() => setView("calendar")}
+                >
+                  <CalendarIcon className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant={view === "list" ? "default" : "outline"} 
+                  size="sm" 
+                  className="rounded-full"
+                  onClick={() => setView("list")}
+                >
+                  List
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {moodEntries.slice(0, 5).map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:border-primary/30">
-                    <div>
-                      <p className="font-medium text-sm">
-                        {format(entry.date, "MMM d")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(entry.date, "h:mm a")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium text-sm">
-                        {moodDescriptions.find(m => m.id === entry.mood)?.label}
-                      </p>
-                    </div>
+              {view === "calendar" ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 gap-1">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+                        {day}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                  
+                  <div className="grid grid-cols-7 gap-1">
+                    {generateCalendarDays().map((date, index) => {
+                      const isCurrentMonth = date.getMonth() === new Date().getMonth();
+                      const predominantMood = getPredominantMood(date);
+                      const isSelected = selectedDate && isSameDay(date, selectedDate);
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`h-10 rounded-full flex items-center justify-center cursor-pointer transition-colors ${
+                            isSelected 
+                              ? 'ring-2 ring-primary' 
+                              : 'hover:bg-muted/50'
+                          } ${
+                            isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                          }`}
+                          onClick={() => {
+                            setSelectedDate(date);
+                          }}
+                        >
+                          <div className="relative">
+                            <span className="text-sm">{date.getDate()}</span>
+                            {predominantMood && (
+                              <div 
+                                className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full ${predominantMood.color}`}
+                                title={predominantMood.label}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {selectedDate && (
+                    <div className="pt-4 border-t border-border/50">
+                      <h3 className="font-medium mb-2">
+                        {format(selectedDate, "MMMM d, yyyy")} Entries
+                      </h3>
+                      {selectedDateEntries.length > 0 ? (
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {selectedDateEntries.map(entry => {
+                            const moodInfo = moodData.find(m => m.id === entry.mood);
+                            return (
+                              <div 
+                                key={entry.id} 
+                                className="flex items-center justify-between p-2 border border-border/50 rounded-lg"
+                              >
+                                <div className="flex items-center">
+                                  {moodInfo && (
+                                    <div className={`w-3 h-3 rounded-full ${moodInfo.color} mr-2`} />
+                                  )}
+                                  <span className="text-sm">
+                                    {moodInfo?.label || "Unknown"}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(entry.date, "h:mm a")}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No mood entries for this date
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {moodEntries
+                    .sort((a, b) => b.date.getTime() - a.date.getTime())
+                    .slice(0, 10)
+                    .map(entry => {
+                      const moodInfo = moodData.find(m => m.id === entry.mood);
+                      return (
+                        <div 
+                          key={entry.id} 
+                          className="flex items-center justify-between p-3 border border-border/50 rounded-lg hover:border-primary/30"
+                        >
+                          <div className="flex items-center">
+                            {moodInfo && (
+                              <div className={`w-3 h-3 rounded-full ${moodInfo.color} mr-2`} />
+                            )}
+                            <div>
+                              <p className="font-medium text-sm">
+                                {moodInfo?.label || "Unknown"}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(entry.date, "MMM d, h:mm a")}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
