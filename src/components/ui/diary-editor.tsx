@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Save, Calendar } from "lucide-react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
+import { useToast } from "@/hooks/use-toast";
 
 interface DiaryEntry {
   id: string;
@@ -23,14 +24,31 @@ interface DiaryEditorProps {
 export function DiaryEditor({ entry, onSave }: DiaryEditorProps) {
   const [content, setContent] = useState(entry?.content || "");
   const [selectedMood, setSelectedMood] = useState<number | null>(entry?.mood || null);
+  const { toast } = useToast();
 
   const handleSave = () => {
+    if (!content.trim()) {
+      toast({
+        title: "Empty Entry",
+        description: "Please write something before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (onSave) {
-      onSave({
+      const entryToSave: DiaryEntry = {
         id: entry?.id || Date.now().toString(),
         date: entry?.date || new Date(),
         content,
         mood: selectedMood,
+      };
+      
+      onSave(entryToSave);
+      
+      toast({
+        title: "Entry Saved",
+        description: "Your diary entry has been saved successfully.",
       });
     }
   };

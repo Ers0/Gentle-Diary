@@ -7,6 +7,7 @@ import Navigation from "@/components/ui/navigation";
 import Index from "./pages/Index";
 import Diary from "./pages/Diary";
 import MoodTrackerPage from "./pages/MoodTracker";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/diary" element={<Diary />} />
           <Route path="/mood" element={<MoodTrackerPage />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

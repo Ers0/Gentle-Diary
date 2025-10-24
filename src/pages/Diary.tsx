@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, FileText } from "lucide-react";
 import { format } from "date-fns";
 
 interface DiaryEntry {
@@ -47,11 +47,19 @@ const Diary = () => {
 
   const handleNewEntry = () => {
     setCurrentEntry({
-      id: "",
+      id: Date.now().toString(),
       date: new Date(),
       content: "",
       mood: null
     });
+  };
+
+  const handleViewEntry = (entry: DiaryEntry) => {
+    setCurrentEntry(entry);
+  };
+
+  const handleBackToList = () => {
+    setCurrentEntry(null);
   };
 
   const filteredEntries = entries.filter(entry => 
@@ -96,6 +104,11 @@ const Diary = () => {
               ? format(currentEntry.date, "MMMM d, yyyy") 
               : "Welcome to your Diary"}
           </h2>
+          {currentEntry && (
+            <Button variant="outline" onClick={handleBackToList}>
+              Back to List
+            </Button>
+          )}
         </header>
         
         <main className="flex-1 overflow-auto p-6">
@@ -125,7 +138,7 @@ const Diary = () => {
                       <div 
                         key={entry.id} 
                         className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer"
-                        onClick={() => setCurrentEntry(entry)}
+                        onClick={() => handleViewEntry(entry)}
                       >
                         <div className="flex justify-between items-start">
                           <h4 className="font-medium">{format(entry.date, "MMMM d, yyyy")}</h4>
@@ -136,6 +149,14 @@ const Diary = () => {
                         <p className="mt-2 text-muted-foreground line-clamp-2">
                           {entry.content}
                         </p>
+                        {entry.mood && (
+                          <div className="mt-2 flex items-center">
+                            <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              Mood recorded
+                            </span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
