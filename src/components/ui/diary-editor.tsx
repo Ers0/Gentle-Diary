@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Save, Calendar, Heart } from "lucide-react";
+import { Save, Calendar, Heart } from "licide-react";
 import { MoodTracker } from "@/components/ui/mood-tracker";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,15 +21,18 @@ interface DiaryEditorProps {
   entry?: DiaryEntry;
   onSave?: (entry: DiaryEntry) => void;
   currentBookId?: string;
+  onLeave?: () => void;
 }
 
-export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
+export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEditorProps) {
   const [content, setContent] = useState(entry?.content || "");
   const [selectedMood, setSelectedMood] = useState<number | null>(entry?.mood || null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasUnsavedChanges = useRef(false);
+  const hasAutoSaved = useRef(false);
+  const autoSavedEntryRef = useRef<DiaryEntry | null>(null);
 
   // Auto-save when content changes (debounced)
   useEffect(() => {
@@ -61,8 +64,17 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       if (hasUnsavedChanges.current && (content.trim() || entry?.content)) {
         handleAutoSave();
       }
+      
+      // Show toast when leaving if we auto-saved
+      if (hasAutoSaved.current && onLeave) {
+        toast({
+          title: "Entry auto-saved",
+          description: "",
+        });
+        onLeave();
+      }
     };
-  }, [content, entry]);
+  }, [content, entry, onLeave]);
 
   const handleAutoSave = () => {
     if (!hasUnsavedChanges.current || (!content.trim() && !entry?.content)) return;
@@ -78,11 +90,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       
       onSave(entryToSave);
       hasUnsavedChanges.current = false;
-      
-      toast({
-        title: "Entry saved",
-        description: "",
-      });
+      hasAutoSaved.current = true;
+      autoSavedEntryRef.current = entryToSave;
     }
   };
 
