@@ -71,7 +71,6 @@ export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEdit
           title: "Entry auto-saved",
           description: "",
         });
-        onLeave();
       }
     };
   }, [content, entry, onLeave]);
