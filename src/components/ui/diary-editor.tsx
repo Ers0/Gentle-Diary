@@ -186,18 +186,26 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
       const nonEmptyLines = lines.filter(line => line.trim() !== '');
       
       if (nonEmptyLines.length === subtitleLines) {
-        // Auto-insert subtitle formatting
-        const cursorPos = textareaRef.current?.selectionStart || 0;
-        const newContent = content.substring(0, cursorPos) + 
-          '\n## ' + 
-          content.substring(cursorPos);
-        setContent(newContent);
+        // Get the text of the last line (which will become the subtitle)
+        const lastLineText = nonEmptyLines[nonEmptyLines.length - 1] || "";
+        
+        // Replace the last line with a subtitle format
+        const linesCopy = [...lines];
+        if (linesCopy.length > 0) {
+          linesCopy[linesCopy.length - 1] = `## ${lastLineText}`;
+        }
+        
+        // Reconstruct the content
+        const newTextBeforeCursor = linesCopy.join('\n');
+        const newText = newTextBeforeCursor + content.substring(textareaRef.current?.selectionStart || 0);
+        
+        setContent(newText);
         e.preventDefault();
         
-        // Move cursor to after "## "
+        // Move cursor to end of the subtitle
         setTimeout(() => {
           if (textareaRef.current) {
-            const newCursorPos = cursorPos + 4; // 4 = length of "\n## "
+            const newCursorPos = newTextBeforeCursor.length;
             textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
             textareaRef.current.focus();
           }
