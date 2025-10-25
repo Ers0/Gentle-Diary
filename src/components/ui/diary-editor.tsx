@@ -177,30 +177,31 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && autoSubtitle) {
+    if (e.key === 'Enter' && autoSubtitle && textareaRef.current) {
       // Check if we should auto-create a subtitle
-      const textBeforeCursor = content.substring(0, textareaRef.current?.selectionStart || 0);
+      const cursorPos = textareaRef.current.selectionStart;
+      const textBeforeCursor = content.substring(0, cursorPos);
       const lines = textBeforeCursor.split('\n');
       
       // Count non-empty lines
       const nonEmptyLines = lines.filter(line => line.trim() !== '');
       
       if (nonEmptyLines.length === subtitleLines) {
-        // Get the text of the last line (which will become the subtitle)
-        const lastLineText = nonEmptyLines[nonEmptyLines.length - 1] || "";
+        e.preventDefault();
         
-        // Replace the last line with a subtitle format
-        const linesCopy = [...lines];
-        if (linesCopy.length > 0) {
-          linesCopy[linesCopy.length - 1] = `## ${lastLineText}`;
-        }
+        // Get the current line (the one we're about to convert)
+        const currentLineIndex = lines.length - 1;
+        const currentLine = lines[currentLineIndex];
         
-        // Reconstruct the content
-        const newTextBeforeCursor = linesCopy.join('\n');
-        const newText = newTextBeforeCursor + content.substring(textareaRef.current?.selectionStart || 0);
+        // Convert current line to subtitle
+        const newLine = `## ${currentLine.trim()}`;
+        lines[currentLineIndex] = newLine;
+        
+        // Reconstruct content
+        const newTextBeforeCursor = lines.join('\n');
+        const newText = newTextBeforeCursor + content.substring(cursorPos);
         
         setContent(newText);
-        e.preventDefault();
         
         // Move cursor to end of the subtitle
         setTimeout(() => {
