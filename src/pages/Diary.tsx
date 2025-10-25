@@ -65,6 +65,7 @@ const formatContentForDisplay = (content: string) => {
     // Handle font sizes
     let processedLine = line;
     processedLine = processedLine.replace(/\{small\}(.*?)\{\/small\}/g, '<span class="text-xs">$1</span>');
+    processedLine = processedLine.replace(/\{normal\}(.*?)\{\/normal\}/g, '<span class="text-sm">$1</span>');
     processedLine = processedLine.replace(/\{large\}(.*?)\{\/large\}/g, '<span class="text-lg">$1</span>');
     processedLine = processedLine.replace(/\{xlarge\}(.*?)\{\/xlarge\}/g, '<span class="text-xl">$1</span>');
     
