@@ -9,8 +9,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 flex-1 flex flex-col justify-center">
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
-            <div className="bg-primary/15 p-4 rounded-full">
-              <Heart className="h-12 w-12 text-primary" />
+            <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4 rounded-full">
+              <Heart className="h-12 w-12 text-white" />
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Your Gentle Diary</h1>
@@ -18,16 +18,16 @@ const Index = () => {
             A cozy space for your thoughts and feelings
           </p>
           <div className="flex justify-center gap-3">
-            <Button size="lg" className="rounded-full px-6 bg-primary hover:bg-primary/90" asChild>
+            <Button size="lg" className="rounded-full px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" asChild>
               <Link to="/diary">Start Writing</Link>
             </Button>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16">
-          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow hover:border-primary/30">
-            <div className="bg-primary/10 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
-              <BookOpen className="h-6 w-6 text-primary" />
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="h-6 w-6 text-white" />
             </div>
             <h3 className="font-medium mb-2">Digital Journal</h3>
             <p className="text-sm text-muted-foreground">
@@ -35,9 +35,9 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow hover:border-secondary/30">
-            <div className="bg-secondary/10 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
-              <Smile className="h-6 w-6 text-secondary" />
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+              <Smile className="h-6 w-6 text-white" />
             </div>
             <h3 className="font-medium mb-2">Mood Tracking</h3>
             <p className="text-sm text-muted-foreground">
@@ -45,9 +45,9 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-shadow hover:border-accent/30">
-            <div className="bg-accent/10 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
-              <Calendar className="h-6 w-6 text-accent" />
+          <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="bg-gradient-to-br from-violet-400 to-purple-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+              <Calendar className="h-6 w-6 text-white" />
             </div>
             <h3 className="font-medium mb-2">Daily Reflection</h3>
             <p className="text-sm text-muted-foreground">
