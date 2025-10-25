@@ -1,12 +1,9 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Save, Calendar, Heart } from "lucide-react";
-import { MoodTracker } from "@/components/ui/mood-tracker";
+import { Save, Bold, Italic, Underline, Heading1, Heading2, List, ListOrdered } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface DiaryEntry {
@@ -18,154 +15,253 @@ interface DiaryEntry {
 }
 
 interface DiaryEditorProps {
-  entry?: DiaryEntry;
-  onSave?: (entry: DiaryEntry) => void;
-  currentBookId?: string;
-  onLeave?: () => void;
+  entry: DiaryEntry;
+  onSave: (entry: DiaryEntry) => void;
+  currentBookId?: string | null;
 }
 
-export function DiaryEditor({ entry, onSave, currentBookId, onLeave }: DiaryEditorProps) {
-  const [content, setContent] = useState(entry?.content || "");
-  const [selectedMood, setSelectedMood] = useState<number | null>(entry?.mood || null);
-  const [isSaving, setIsSaving] = useState(false);
+export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
+  const [content, setContent] = useState(entry.content);
+  const [title, setTitle] = useState("");
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasUnsavedChanges = useRef(false);
-
-  // Auto-save when content changes (debounced)
+  
+  // Load auto-subtitle settings
+  const [autoSubtitle, setAutoSubtitle] = useState(false);
+  const [subtitleLines, setSubtitleLines] = useState(3);
+  
   useEffect(() => {
-    if (content !== (entry?.content || "") || selectedMood !== (entry?.mood || null)) {
-      hasUnsavedChanges.current = true;
-      
-      // Clear existing timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      
-      // Set new timeout to save after 3 seconds of inactivity
-      saveTimeoutRef.current = setTimeout(() => {
-        handleAutoSave();
-      }, 3000);
+    const savedAutoSubtitle = localStorage.getItem("autoSubtitle");
+    const savedSubtitleLines = localStorage.getItem("subtitleLines");
+    
+    if (savedAutoSubtitle) {
+      setAutoSubtitle(JSON.parse(savedAutoSubtitle));
     }
     
-    // Cleanup function
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, [content, selectedMood]);
-
-  // Save when component unmounts
+    if (savedSubtitleLines) {
+      setSubtitleLines(parseInt(savedSubtitleLines));
+    }
+  }, []);
+  
+  // Extract title from first line of content
   useEffect(() => {
-    return () => {
-      if (hasUnsavedChanges.current && (content.trim() || entry?.content)) {
-        handleAutoSave();
-      }
-    };
-  }, [content, entry]);
+    const lines = entry.content.split('\n');
+    if (lines.length > 0 && lines[0].startsWith('# ')) {
+      setTitle(lines[0].substring(2));
+      setContent(lines.slice(1).join('\n'));
+    } else {
+      setTitle(lines[0] || "");
+      setContent(lines.slice(1).join('\n'));
+    }
+  }, [entry.content]);
 
-  const handleAutoSave = () => {
-    if (!hasUnsavedChanges.current || (!content.trim() && !entry?.content)) return;
+  const handleSave = () => {
+    // Format content with title
+    let formattedContent = "";
     
-    if (onSave) {
-      const entryToSave: DiaryEntry = {
-        id: entry?.id || Date.now().toString(),
-        date: entry?.date || new Date(),
-        content,
-        mood: selectedMood,
-        bookId: currentBookId // Always use the current book ID
-      };
-      
-      onSave(entryToSave);
-      hasUnsavedChanges.current = false;
+    if (title.trim()) {
+      formattedContent += `# ${title}\n\n`;
     }
+    
+    formattedContent += content;
+    
+    onSave({
+      ...entry,
+      content: formattedContent,
+      bookId: currentBookId || entry.bookId
+    });
+    
+    toast({
+      title: "Entry saved",
+      description: "Your diary entry has been saved successfully.",
+    });
   };
 
-  const handleManualSave = () => {
-    if (!content.trim() && !entry?.content) {
-      toast({
-        title: "Empty entry",
-        description: "Please write something first",
-        variant: "destructive",
-      });
-      return;
+  const applyFormatting = (formatType: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    
+    let formattedText = "";
+    let cursorOffset = 0;
+    
+    switch (formatType) {
+      case "bold":
+        formattedText = `**${selectedText}**`;
+        cursorOffset = 2;
+        break;
+      case "italic":
+        formattedText = `*${selectedText}*`;
+        cursorOffset = 1;
+        break;
+      case "underline":
+        formattedText = `__${selectedText}__`;
+        cursorOffset = 2;
+        break;
+      case "h1":
+        formattedText = `# ${selectedText}`;
+        cursorOffset = 2;
+        break;
+      case "h2":
+        formattedText = `## ${selectedText}`;
+        cursorOffset = 3;
+        break;
+      case "ul":
+        formattedText = selectedText.split('\n').map(line => `- ${line}`).join('\n');
+        break;
+      case "ol":
+        formattedText = selectedText.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
+        break;
+      default:
+        return;
     }
-
-    if (onSave) {
-      setIsSaving(true);
-      
-      const entryToSave: DiaryEntry = {
-        id: entry?.id || Date.now().toString(),
-        date: entry?.date || new Date(),
-        content,
-        mood: selectedMood,
-        bookId: currentBookId // Always use the current book ID
-      };
-      
-      onSave(entryToSave);
-      hasUnsavedChanges.current = false;
-      
-      // Clear timeout since we're manually saving
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+    
+    const newContent = content.substring(0, start) + formattedText + content.substring(end);
+    setContent(newContent);
+    
+    // Set cursor position after inserted text
+    setTimeout(() => {
+      if (textarea) {
+        const newCursorPos = start + formattedText.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
       }
-      
-      toast({
-        title: "Entry saved",
-        description: "",
-      });
-      
-      setIsSaving(false);
-    }
+    }, 0);
   };
 
-  const handleMoodSelect = (moodId: number) => {
-    setSelectedMood(moodId);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && autoSubtitle) {
+      // Check if we should auto-create a subtitle
+      const lines = content.substring(0, textareaRef.current?.selectionStart || 0).split('\n');
+      if (lines.length === subtitleLines) {
+        // Auto-insert subtitle formatting
+        const newContent = content.substring(0, textareaRef.current?.selectionStart || 0) + 
+          '\n## ' + 
+          content.substring(textareaRef.current?.selectionStart || 0);
+        setContent(newContent);
+        e.preventDefault();
+      }
+    }
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <Card className="border-border/50 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-border/50">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <div className="bg-primary/10 p-1.5 rounded-full">
-              <Heart className="h-4 w-4 text-primary" />
-            </div>
-            {entry ? format(entry.date, "MMMM d, yyyy") : "New Entry"}
-          </CardTitle>
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            <span>{entry ? format(entry.date, "h:mm a") : format(new Date(), "h:mm a")}</span>
+    <Card className="border-border/50 shadow-sm">
+      <CardContent className="p-6">
+        <div className="mb-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Entry title..."
+            className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 placeholder:text-muted-foreground"
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            {format(entry.date, "EEEE, MMMM d, yyyy")}
+          </p>
+        </div>
+        
+        <div className="border-b border-border/50 pb-3 mb-4">
+          <div className="flex flex-wrap gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("bold")}
+              aria-label="Bold"
+            >
+              <Bold className="h-3 w-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("italic")}
+              aria-label="Italic"
+            >
+              <Italic className="h-3 w-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("underline")}
+              aria-label="Underline"
+            >
+              <Underline className="h-3 w-3" />
+            </Button>
+            <div className="w-px bg-border mx-1" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("h1")}
+              aria-label="Heading 1"
+            >
+              <Heading1 className="h-3 w-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("h2")}
+              aria-label="Heading 2"
+            >
+              <Heading2 className="h-3 w-3" />
+            </Button>
+            <div className="w-px bg-border mx-1" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("ul")}
+              aria-label="Bullet List"
+            >
+              <List className="h-3 w-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => applyFormatting("ol")}
+              aria-label="Numbered List"
+            >
+              <ListOrdered className="h-3 w-3" />
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="pt-5">
-          <div className="mb-5">
-            <MoodTracker 
-              selectedMood={selectedMood} 
-              onMoodSelect={handleMoodSelect} 
-            />
-          </div>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Write your thoughts here..."
-              className="min-h-[250px] text-base border-border/50 rounded-xl"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-            <div className="flex justify-end">
-              <Button 
-                className="rounded-full px-5 bg-primary hover:bg-primary/90"
-                onClick={handleManualSave}
-                disabled={isSaving}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? "Saving..." : "Save Entry"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        
+        <Textarea
+          ref={textareaRef}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Write your thoughts here..."
+          className="min-h-[400px] resize-none border-0 p-0 focus-visible:ring-0"
+          onKeyDown={handleKeyDown}
+        />
+        
+        <div className="mt-6 flex justify-end">
+          <Button 
+            className="rounded-full px-5 bg-primary hover:bg-primary/90"
+            onClick={handleSave}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save Entry
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};

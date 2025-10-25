@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -8,11 +8,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
-import { Heart, Bell, User, Trash2 } from "lucide-react";
+import { Heart, Bell, User, Trash2, Type } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  
+  // Load settings from localStorage
+  const [autoSubtitle, setAutoSubtitle] = useState(() => {
+    const saved = localStorage.getItem("autoSubtitle");
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  const [subtitleLines, setSubtitleLines] = useState(() => {
+    const saved = localStorage.getItem("subtitleLines");
+    return saved ? parseInt(saved) : 3;
+  });
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem("autoSubtitle", JSON.stringify(autoSubtitle));
+  }, [autoSubtitle]);
+  
+  useEffect(() => {
+    localStorage.setItem("subtitleLines", subtitleLines.toString());
+  }, [subtitleLines]);
 
   const handleSave = () => {
     toast({
@@ -54,6 +74,50 @@ const Settings = () => {
                   onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} 
                 />
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="bg-secondary/15 p-1.5 rounded-full">
+                  <Type className="h-4 w-4 text-secondary" />
+                </div>
+                Formatting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Auto Subtitle</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically create subtitles after specified lines
+                  </p>
+                </div>
+                <Switch 
+                  checked={autoSubtitle} 
+                  onCheckedChange={setAutoSubtitle} 
+                />
+              </div>
+              
+              {autoSubtitle && (
+                <div className="flex items-center justify-between pt-2">
+                  <div>
+                    <h3 className="font-medium">Lines Before Subtitle</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Number of lines before auto-creating subtitle
+                    </p>
+                  </div>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={subtitleLines}
+                    onChange={(e) => setSubtitleLines(parseInt(e.target.value) || 3)}
+                    className="w-20 text-right"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
           

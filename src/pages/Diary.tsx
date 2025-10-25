@@ -35,6 +35,54 @@ const BOOK_COLORS = [
   { name: "Teal", value: "bg-teal-500" },
 ];
 
+// Function to format markdown-like content for display
+const formatContentForDisplay = (content: string) => {
+  // Split content into lines
+  const lines = content.split('\n');
+  
+  // Process lines to convert markdown-like syntax to HTML
+  const processedLines = lines.map((line, index) => {
+    // Handle titles
+    if (line.startsWith('# ')) {
+      return `<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`;
+    }
+    
+    // Handle subtitles
+    if (line.startsWith('## ')) {
+      return `<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`;
+    }
+    
+    // Handle bold
+    let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Handle italic
+    processedLine = processedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Handle underline
+    processedLine = processedLine.replace(/__(.*?)__/g, '<u>$1</u>');
+    
+    // Handle bullet lists
+    if (line.startsWith('- ')) {
+      return `<li class="ml-4">${processedLine.substring(2)}</li>`;
+    }
+    
+    // Handle numbered lists
+    if (/^\d+\./.test(line)) {
+      return `<li class="ml-4">${processedLine.replace(/^\d+\.\s/, '')}</li>`;
+    }
+    
+    // Handle paragraphs
+    if (processedLine.trim() === '') {
+      return '<br/>';
+    }
+    
+    return `<p class="mb-2">${processedLine}</p>`;
+  });
+  
+  // Join processed lines
+  return processedLines.join('');
+};
+
 const Diary = () => {
   const [entries, setEntries] = useState<DiaryEntry[]>(() => {
     const savedEntries = localStorage.getItem("diaryEntries");
@@ -55,13 +103,13 @@ const Diary = () => {
       {
         id: "1",
         date: new Date(),
-        content: "Today was a great day! I accomplished so much and felt really productive.",
+        content: "# My First Entry\n\n## A beautiful day\n\nToday was a great day! I accomplished so much and felt really productive.\n\n- Finished my project\n- Went for a walk\n- Read a good book",
         mood: 1
       },
       {
         id: "2",
         date: new Date(Date.now() - 86400000),
-        content: "Feeling a bit overwhelmed with work today. Need to take some time for myself.",
+        content: "# Reflection\n\n## Feeling overwhelmed\n\nFeeling a bit overwhelmed with work today. Need to take some time for myself.\n\n1. Prioritize tasks\n2. Take breaks\n3. Ask for help",
         mood: 4
       }
     ];
@@ -343,9 +391,12 @@ const Diary = () => {
                             {format(entry.date, "h:mm a")}
                           </span>
                         </div>
-                        <p className="mt-2 text-muted-foreground text-sm line-clamp-2">
-                          {entry.content}
-                        </p>
+                        <div 
+                          className="mt-2 text-muted-foreground text-sm line-clamp-3"
+                          dangerouslySetInnerHTML={{ 
+                            __html: formatContentForDisplay(entry.content.split('\n').slice(0, 5).join('\n')) 
+                          }}
+                        />
                         {entry.mood && (
                           <div className="mt-2 flex items-center">
                             <FileText className="h-3 w-3 mr-1 text-muted-foreground" />
