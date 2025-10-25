@@ -42,33 +42,43 @@ const formatContentForDisplay = (content: string) => {
   
   // Process lines to convert markdown-like syntax to HTML
   const processedLines = lines.map((line, index) => {
-    // Handle titles
-    if (line.startsWith('# ')) {
+    // Handle titles (H1)
+    if (line.startsWith('# ') && !line.startsWith('## ')) {
       return `<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`;
     }
     
-    // Handle subtitles
+    // Handle subtitles (H2)
     if (line.startsWith('## ')) {
       return `<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`;
     }
     
+    // Handle horizontal rule
+    if (line === '---') {
+      return `<hr class="my-4 border-border" />`;
+    }
+    
+    // Handle blockquotes
+    if (line.startsWith('> ')) {
+      return `<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${line.substring(2)}</blockquote>`;
+    }
+    
     // Handle bold
-    let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
     
     // Handle italic
-    processedLine = processedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    processedLine = processedLine.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
     
     // Handle underline
-    processedLine = processedLine.replace(/__(.*?)__/g, '<u>$1</u>');
+    processedLine = processedLine.replace(/__(.*?)__/g, '<u class="underline">$1</u>');
     
     // Handle bullet lists
     if (line.startsWith('- ')) {
-      return `<li class="ml-4">${processedLine.substring(2)}</li>`;
+      return `<li class="ml-4 list-disc">${processedLine.substring(2)}</li>`;
     }
     
     // Handle numbered lists
     if (/^\d+\./.test(line)) {
-      return `<li class="ml-4">${processedLine.replace(/^\d+\.\s/, '')}</li>`;
+      return `<li class="ml-4 list-decimal">${processedLine.replace(/^\d+\.\s/, '')}</li>`;
     }
     
     // Handle paragraphs
@@ -79,8 +89,49 @@ const formatContentForDisplay = (content: string) => {
     return `<p class="mb-2">${processedLine}</p>`;
   });
   
+  // Group list items
+  let inUnorderedList = false;
+  let inOrderedList = false;
+  const groupedLines = [];
+  
+  for (let i = 0; i < processedLines.length; i++) {
+    const line = processedLines[i];
+    
+    if (line.includes('class="ml-4 list-disc"')) {
+      if (!inUnorderedList) {
+        groupedLines.push('<ul class="my-2">');
+        inUnorderedList = true;
+      }
+      groupedLines.push(line);
+    } else if (line.includes('class="ml-4 list-decimal"')) {
+      if (!inOrderedList) {
+        groupedLines.push('<ol class="my-2 list-decimal">');
+        inOrderedList = true;
+      }
+      groupedLines.push(line);
+    } else {
+      if (inUnorderedList) {
+        groupedLines.push('</ul>');
+        inUnorderedList = false;
+      }
+      if (inOrderedList) {
+        groupedLines.push('</ol>');
+        inOrderedList = false;
+      }
+      groupedLines.push(line);
+    }
+  }
+  
+  // Close any open lists
+  if (inUnorderedList) {
+    groupedLines.push('</ul>');
+  }
+  if (inOrderedList) {
+    groupedLines.push('</ol>');
+  }
+  
   // Join processed lines
-  return processedLines.join('');
+  return groupedLines.join('');
 };
 
 const Diary = () => {
@@ -103,13 +154,13 @@ const Diary = () => {
       {
         id: "1",
         date: new Date(),
-        content: "# My First Entry\n\n## A beautiful day\n\nToday was a great day! I accomplished so much and felt really productive.\n\n- Finished my project\n- Went for a walk\n- Read a good book",
+        content: "# My First Entry\n\n## A beautiful day\n\nToday was a great day! I accomplished so much and felt really productive.\n\n- Finished my project\n- Went for a walk\n- Read a good book\n\n> This was truly an amazing day!",
         mood: 1
       },
       {
         id: "2",
         date: new Date(Date.now() - 86400000),
-        content: "# Reflection\n\n## Feeling overwhelmed\n\nFeeling a bit overwhelmed with work today. Need to take some time for myself.\n\n1. Prioritize tasks\n2. Take breaks\n3. Ask for help",
+        content: "# Reflection\n\n## Feeling overwhelmed\n\nFeeling a bit overwhelmed with work today. Need to take some time for myself.\n\n1. Prioritize tasks\n2. Take breaks\n3. Ask for help\n\n---\n\nI should remember to be kinder to myself.",
         mood: 4
       }
     ];

@@ -3,7 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Save, Bold, Italic, Underline, Heading1, Heading2, List, ListOrdered } from "lucide-react";
+import { 
+  Save, 
+  Bold, 
+  Italic, 
+  Underline, 
+  Heading1, 
+  Heading2, 
+  List, 
+  ListOrdered,
+  Quote,
+  Link,
+  Image,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Minus
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface DiaryEntry {
@@ -23,9 +40,6 @@ interface DiaryEditorProps {
 export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
   const [content, setContent] = useState(entry.content);
   const [title, setTitle] = useState("");
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   
@@ -80,7 +94,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
-  const applyFormatting = (formatType: string) => {
+  const insertFormatting = (prefix: string, suffix: string = "", block: boolean = false) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     
@@ -88,64 +102,106 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
     
-    let formattedText = "";
-    let cursorOffset = 0;
+    let newText = "";
+    let newCursorPos = start;
     
-    switch (formatType) {
-      case "bold":
-        formattedText = `**${selectedText}**`;
-        cursorOffset = 2;
-        break;
-      case "italic":
-        formattedText = `*${selectedText}*`;
-        cursorOffset = 1;
-        break;
-      case "underline":
-        formattedText = `__${selectedText}__`;
-        cursorOffset = 2;
-        break;
-      case "h1":
-        formattedText = `# ${selectedText}`;
-        cursorOffset = 2;
-        break;
-      case "h2":
-        formattedText = `## ${selectedText}`;
-        cursorOffset = 3;
-        break;
-      case "ul":
-        formattedText = selectedText.split('\n').map(line => `- ${line}`).join('\n');
-        break;
-      case "ol":
-        formattedText = selectedText.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
-        break;
-      default:
-        return;
+    if (block) {
+      // For block elements like headings, quotes, dividers
+      const lines = content.split('\n');
+      const lineStart = content.substring(0, start).split('\n').length - 1;
+      lines[lineStart] = prefix + lines[lineStart];
+      newText = lines.join('\n');
+      newCursorPos = start + prefix.length;
+    } else if (selectedText) {
+      // For inline formatting with selected text
+      newText = content.substring(0, start) + prefix + selectedText + suffix + content.substring(end);
+      newCursorPos = start + prefix.length + selectedText.length + suffix.length;
+    } else {
+      // For inserting formatting characters at cursor position
+      newText = content.substring(0, start) + prefix + content.substring(end);
+      newCursorPos = start + prefix.length;
     }
     
-    const newContent = content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
+    setContent(newText);
     
-    // Set cursor position after inserted text
+    // Set cursor position
     setTimeout(() => {
       if (textarea) {
-        const newCursorPos = start + formattedText.length;
         textarea.setSelectionRange(newCursorPos, newCursorPos);
         textarea.focus();
       }
     }, 0);
   };
 
+  const insertList = (ordered: boolean = false) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    
+    if (selectedText) {
+      // Convert selected text to list
+      const lines = selectedText.split('\n');
+      const listLines = lines.map((line, index) => 
+        ordered ? `${index + 1}. ${line}` : `- ${line}`
+      );
+      
+      const newText = content.substring(0, start) + listLines.join('\n') + content.substring(end);
+      setContent(newText);
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        if (textarea) {
+          const newCursorPos = start + listLines.join('\n').length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      }, 0);
+    } else {
+      // Insert list marker at cursor
+      const listMarker = ordered ? "1. " : "- ";
+      const newText = content.substring(0, start) + listMarker + content.substring(end);
+      setContent(newText);
+      
+      // Set cursor position after list marker
+      setTimeout(() => {
+        if (textarea) {
+          const newCursorPos = start + listMarker.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      }, 0);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && autoSubtitle) {
       // Check if we should auto-create a subtitle
-      const lines = content.substring(0, textareaRef.current?.selectionStart || 0).split('\n');
-      if (lines.length === subtitleLines) {
+      const textBeforeCursor = content.substring(0, textareaRef.current?.selectionStart || 0);
+      const lines = textBeforeCursor.split('\n');
+      
+      // Count non-empty lines
+      const nonEmptyLines = lines.filter(line => line.trim() !== '');
+      
+      if (nonEmptyLines.length === subtitleLines) {
         // Auto-insert subtitle formatting
-        const newContent = content.substring(0, textareaRef.current?.selectionStart || 0) + 
+        const cursorPos = textareaRef.current?.selectionStart || 0;
+        const newContent = content.substring(0, cursorPos) + 
           '\n## ' + 
-          content.substring(textareaRef.current?.selectionStart || 0);
+          content.substring(cursorPos);
         setContent(newContent);
         e.preventDefault();
+        
+        // Move cursor to after "## "
+        setTimeout(() => {
+          if (textareaRef.current) {
+            const newCursorPos = cursorPos + 4; // 4 = length of "\n## "
+            textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+            textareaRef.current.focus();
+          }
+        }, 0);
       }
     }
   };
@@ -173,7 +229,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("bold")}
+              onClick={() => insertFormatting("**", "**")}
               aria-label="Bold"
             >
               <Bold className="h-3 w-3" />
@@ -183,7 +239,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("italic")}
+              onClick={() => insertFormatting("*", "*")}
               aria-label="Italic"
             >
               <Italic className="h-3 w-3" />
@@ -193,7 +249,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("underline")}
+              onClick={() => insertFormatting("__", "__")}
               aria-label="Underline"
             >
               <Underline className="h-3 w-3" />
@@ -204,7 +260,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("h1")}
+              onClick={() => insertFormatting("# ", "", true)}
               aria-label="Heading 1"
             >
               <Heading1 className="h-3 w-3" />
@@ -214,7 +270,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("h2")}
+              onClick={() => insertFormatting("## ", "", true)}
               aria-label="Heading 2"
             >
               <Heading2 className="h-3 w-3" />
@@ -225,7 +281,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("ul")}
+              onClick={() => insertList(false)}
               aria-label="Bullet List"
             >
               <List className="h-3 w-3" />
@@ -235,10 +291,31 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => applyFormatting("ol")}
+              onClick={() => insertList(true)}
               aria-label="Numbered List"
             >
               <ListOrdered className="h-3 w-3" />
+            </Button>
+            <div className="w-px bg-border mx-1" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => insertFormatting("> ", "", true)}
+              aria-label="Quote"
+            >
+              <Quote className="h-3 w-3" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full h-8 w-8 p-0"
+              onClick={() => insertFormatting("---\n", "", true)}
+              aria-label="Divider"
+            >
+              <Minus className="h-3 w-3" />
             </Button>
           </div>
         </div>
