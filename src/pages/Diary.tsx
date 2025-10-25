@@ -47,14 +47,9 @@ const formatContentForDisplay = (content: string) => {
       return `<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`;
     }
     
-    // Handle subtitles (H2 or bold text)
+    // Handle subtitles (H2)
     if (line.startsWith('## ')) {
       return `<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`;
-    }
-    
-    // Handle bold text as subtitles
-    if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-      return `<h2 class="text-xl font-semibold mt-3 mb-2">${line.substring(2, line.length - 2)}</h2>`;
     }
     
     // Handle horizontal rule
@@ -67,8 +62,14 @@ const formatContentForDisplay = (content: string) => {
       return `<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${line.substring(2)}</blockquote>`;
     }
     
+    // Handle font sizes
+    let processedLine = line;
+    processedLine = processedLine.replace(/\{small\}(.*?)\{\/small\}/g, '<span class="text-xs">$1</span>');
+    processedLine = processedLine.replace(/\{large\}(.*?)\{\/large\}/g, '<span class="text-lg">$1</span>');
+    processedLine = processedLine.replace(/\{xlarge\}(.*?)\{\/xlarge\}/g, '<span class="text-xl">$1</span>');
+    
     // Handle bold
-    let processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
+    processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
     
     // Handle italic
     processedLine = processedLine.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');

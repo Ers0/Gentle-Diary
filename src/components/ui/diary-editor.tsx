@@ -19,9 +19,16 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Minus
+  Minus,
+  Type
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface DiaryEntry {
   id: string;
@@ -160,15 +167,91 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
         }
       }, 0);
     } else {
-      // Insert list marker at cursor
+      // Insert list marker at cursor with a new line
       const listMarker = ordered ? "1. " : "- ";
-      const newText = content.substring(0, start) + listMarker + content.substring(end);
+      const currentContent = content.substring(0, start);
+      const afterContent = content.substring(end);
+      
+      // Check if we need to add a new line before the list marker
+      const needsNewLine = start > 0 && content[start - 1] !== '\n';
+      const newText = currentContent + (needsNewLine ? '\n' : '') + listMarker + afterContent;
+      
       setContent(newText);
       
       // Set cursor position after list marker
       setTimeout(() => {
         if (textarea) {
-          const newCursorPos = start + listMarker.length;
+          const newCursorPos = start + (needsNewLine ? 1 : 0) + listMarker.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      }, 0);
+    }
+  };
+
+  const insertQuote = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    
+    if (selectedText) {
+      // Convert selected text to quote (each line gets > prefix)
+      const lines = selectedText.split('\n');
+      const quotedLines = lines.map(line => `> ${line}`);
+      
+      const newText = content.substring(0, start) + quotedLines.join('\n') + content.substring(end);
+      setContent(newText);
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        if (textarea) {
+          const newCursorPos = start + quotedLines.join('\n').length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      }, 0);
+    } else {
+      // Insert quote marker at cursor with a new line
+      const currentContent = content.substring(0, start);
+      const afterContent = content.substring(end);
+      
+      // Check if we need to add a new line before the quote marker
+      const needsNewLine = start > 0 && content[start - 1] !== '\n';
+      const newText = currentContent + (needsNewLine ? '\n' : '') + "> " + afterContent;
+      
+      setContent(newText);
+      
+      // Set cursor position after quote marker
+      setTimeout(() => {
+        if (textarea) {
+          const newCursorPos = start + (needsNewLine ? 1 : 0) + 2;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+          textarea.focus();
+        }
+      }, 0);
+    }
+  };
+
+  const insertFontSize = (size: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    
+    if (selectedText) {
+      // Wrap selected text with font size marker
+      const newText = content.substring(0, start) + `{${size}}${selectedText}{/${size}}` + content.substring(end);
+      setContent(newText);
+      
+      // Set cursor position after inserted text
+      setTimeout(() => {
+        if (textarea) {
+          const newCursorPos = start + `{${size}}${selectedText}{/${size}}`.length;
           textarea.setSelectionRange(newCursorPos, newCursorPos);
           textarea.focus();
         }
@@ -194,7 +277,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
         const currentLine = lines[currentLineIndex];
         
         // Wrap current line with subtitle formatting
-        const newLine = `**${currentLine.trim()}**`;
+        const newLine = `## ${currentLine.trim()}`;
         lines[currentLineIndex] = newLine;
         
         // Reconstruct content
@@ -263,6 +346,35 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
             >
               <Underline className="h-3 w-3" />
             </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full h-8 w-8 p-0"
+                  aria-label="Font Size"
+                >
+                  <Type className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem onClick={() => insertFontSize("small")}>
+                  <span className="text-xs">Small Text</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => insertFontSize("normal")}>
+                  <span className="text-sm">Normal Text</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => insertFontSize("large")}>
+                  <span className="text-base">Large Text</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => insertFontSize("xlarge")}>
+                  <span className="text-lg">Extra Large</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <div className="w-px bg-border mx-1" />
             <Button
               type="button"
@@ -311,7 +423,7 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
               variant="outline"
               size="sm"
               className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("> ", "", true)}
+              onClick={insertQuote}
               aria-label="Quote"
             >
               <Quote className="h-3 w-3" />
