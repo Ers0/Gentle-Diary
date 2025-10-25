@@ -193,8 +193,8 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
         const currentLineIndex = lines.length - 1;
         const currentLine = lines[currentLineIndex];
         
-        // Convert current line to subtitle
-        const newLine = `## ${currentLine.trim()}`;
+        // Wrap current line with subtitle formatting
+        const newLine = `**${currentLine.trim()}**`;
         lines[currentLineIndex] = newLine;
         
         // Reconstruct content
