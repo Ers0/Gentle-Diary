@@ -10,7 +10,6 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
 import { Link } from "@tiptap/extension-link";
-import { CharacterCount } from "@tiptap/extension-character-count";
 import { 
   Bold, 
   Italic, 
@@ -29,7 +28,9 @@ import {
   Highlighter,
   Palette,
   Link as LinkIcon,
-  Type
+  Type,
+  Plus,
+  Minus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -68,7 +69,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       Link.configure({
         openOnClick: false,
       }),
-      CharacterCount,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -97,6 +97,24 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
   const unsetLink = () => {
     editor.chain().focus().unsetLink().run();
+  };
+
+  const increaseFontSize = () => {
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
+    const sizeValue = parseInt(currentSize);
+    const newSize = Math.min(sizeValue + 2, 32);
+    editor.chain().focus().setFontSize(`${newSize}px`).run();
+  };
+
+  const decreaseFontSize = () => {
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
+    const sizeValue = parseInt(currentSize);
+    const newSize = Math.max(sizeValue - 2, 12);
+    editor.chain().focus().setFontSize(`${newSize}px`).run();
+  };
+
+  const setFontSize = (size: string) => {
+    editor.chain().focus().setFontSize(size).run();
   };
 
   return (
@@ -158,6 +176,67 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         >
           <Strikethrough className="h-4 w-4" />
         </Toggle>
+        
+        <Separator orientation="vertical" className="h-6" />
+        
+        {/* Font Size Controls */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="rounded-full p-2 h-8 w-8"
+          onClick={decreaseFontSize}
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">
+              <Type className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2">
+            <div className="space-y-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-xs"
+                onClick={() => setFontSize('12px')}
+              >
+                <span className="text-xs">Small</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-xs"
+                onClick={() => setFontSize('16px')}
+              >
+                <span className="text-sm">Normal</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-xs"
+                onClick={() => setFontSize('20px')}
+              >
+                <span className="text-lg">Large</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-xs"
+                onClick={() => setFontSize('24px')}
+              >
+                <span className="text-xl">X-Large</span>
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="rounded-full p-2 h-8 w-8"
+          onClick={increaseFontSize}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
         
         <Separator orientation="vertical" className="h-6" />
         
@@ -300,41 +379,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
             </div>
           </PopoverContent>
         </Popover>
-        
-        <Separator orientation="vertical" className="h-6" />
-        
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">
-              <Type className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-48 p-2">
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-xs"
-                onClick={() => editor.chain().focus().setFontFamily("sans-serif").run()}
-              >
-                Sans Serif
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-xs"
-                onClick={() => editor.chain().focus().setFontFamily("serif").run()}
-              >
-                <span className="font-serif">Serif</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-xs"
-                onClick={() => editor.chain().focus().setFontFamily("monospace").run()}
-              >
-                <span className="font-mono">Monospace</span>
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
       
       {/* Editor Content */}
@@ -343,11 +387,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
           editor={editor} 
           className="min-h-[300px] focus:outline-none prose prose-stone dark:prose-invert max-w-none"
         />
-      </div>
-      
-      {/* Character Count */}
-      <div className="px-4 py-2 text-xs text-muted-foreground border-t border-border">
-        {editor.storage.characterCount?.characters() || 0} characters
       </div>
     </div>
   );
