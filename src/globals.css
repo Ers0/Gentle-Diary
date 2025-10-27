@@ -16,7 +16,7 @@
     --primary: 25 80% 50%; /* Warm orange */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 33 70% 70%; /* Soft peach */
+    --secondary: 216 92% 64%; /* Soft blue */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 30 20% 96%;
@@ -57,7 +57,7 @@
     --primary: 25 80% 60%; /* Brighter warm orange for dark mode */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 33 70% 60%; /* Softer peach for dark mode */
+    --secondary: 216 92% 50%; /* Softer blue for dark mode */
     --secondary-foreground: 0 0% 100%;
 
     --muted: 30 20% 20%;
@@ -82,6 +82,27 @@
     --sidebar-ring: 25 80% 60%;
   }
 }
+
+/* Additional color utilities */
+.bg-soft-blue { background-color: hsl(216, 92%, 64%); }
+.bg-soft-blue-dark { background-color: hsl(216, 92%, 50%); }
+.text-soft-blue { color: hsl(216, 92%, 64%); }
+.text-soft-blue-dark { color: hsl(216, 92%, 50%); }
+
+.bg-soft-green { background-color: hsl(160, 50%, 80%); }
+.bg-soft-green-dark { background-color: hsl(160, 50%, 60%); }
+.text-soft-green { color: hsl(160, 50%, 80%); }
+.text-soft-green-dark { color: hsl(160, 50%, 60%); }
+
+.bg-soft-purple { background-color: hsl(270, 70%, 75%); }
+.bg-soft-purple-dark { background-color: hsl(270, 70%, 60%); }
+.text-soft-purple { color: hsl(270, 70%, 75%); }
+.text-soft-purple-dark { color: hsl(270, 70%, 60%); }
+
+.bg-soft-pink { background-color: hsl(330, 80%, 80%); }
+.bg-soft-pink-dark { background-color: hsl(330, 80%, 65%); }
+.text-soft-pink { color: hsl(330, 80%, 80%); }
+.text-soft-pink-dark { color: hsl(330, 80%, 65%); }
 
 @layer base {
   * {

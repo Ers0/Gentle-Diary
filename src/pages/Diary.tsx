@@ -36,6 +36,13 @@ const BOOK_COLORS = [
   { name: "Emerald", value: "bg-emerald-500" },
   { name: "Pink", value: "bg-pink-500" },
   { name: "Slate", value: "bg-slate-500" },
+  { name: "Blue", value: "bg-blue-500" },
+  { name: "Violet", value: "bg-violet-500" },
+  { name: "Cyan", value: "bg-cyan-500" },
+  { name: "Fuchsia", value: "bg-fuchsia-500" },
+  { name: "Lime", value: "bg-lime-500" },
+  { name: "Sky", value: "bg-sky-500" },
+  { name: "Purple", value: "bg-purple-500" },
 ];
 
 const Diary = () => {

@@ -36,7 +36,7 @@ const Index = () => {
           </div>
 
           <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+            <div className="bg-gradient-to-br from-blue-400 to-indigo-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
               <Smile className="h-6 w-6 text-white" />
             </div>
             <h3 className="font-medium mb-2">Mood Tracking</h3>
