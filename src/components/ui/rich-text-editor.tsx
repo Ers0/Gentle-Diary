@@ -57,13 +57,13 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       Placeholder.configure({
         placeholder: "Start writing your diary entry...",
       }),
-      TextStyle,
-      Color,
+      TextStyle.configure({}),
+      Color.configure({}),
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
-      Highlight,
-      Underline,
+      Highlight.configure({}),
+      Underline.configure({}),
       Link.configure({
         openOnClick: false,
       }),
