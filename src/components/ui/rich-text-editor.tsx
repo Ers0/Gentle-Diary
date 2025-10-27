@@ -31,12 +31,34 @@ import {
   Type,
   Plus,
   Minus
-} from "lucide-react";
+} from "licade-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
+
+// Custom FontSize extension
+const FontSize = TextStyle.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      fontSize: {
+        default: null,
+        parseHTML: element => element.style.fontSize || null,
+        renderHTML: attributes => {
+          if (!attributes.fontSize) {
+            return {};
+          }
+          
+          return {
+            style: `font-size: ${attributes.fontSize}`,
+          };
+        },
+      },
+    };
+  },
+});
 
 interface RichTextEditorProps {
   content: string;
@@ -75,6 +97,7 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
       placeholder: "Start writing your diary entry...",
     }),
     TextStyle,
+    FontSize,
     Color,
     TextAlign.configure({
       types: ["heading", "paragraph"],
@@ -91,6 +114,11 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none",
+      },
     },
   });
 
@@ -115,12 +143,11 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
     }
   }, [editor]);
 
-  // Font size handling using inline styles
+  // Font size handling
   const increaseFontSize = useCallback(() => {
     if (!editor) return;
     
-    const selection = editor.state.selection;
-    const { from, to } = selection;
+    const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
     
     if (selectedText) {
@@ -130,7 +157,10 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
       
       marks.forEach(mark => {
         if (mark.type.name === 'textStyle' && mark.attrs.fontSize) {
-          currentSize = parseInt(mark.attrs.fontSize);
+          const size = parseInt(mark.attrs.fontSize);
+          if (!isNaN(size)) {
+            currentSize = size;
+          }
         }
       });
       
@@ -145,8 +175,7 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
   const decreaseFontSize = useCallback(() => {
     if (!editor) return;
     
-    const selection = editor.state.selection;
-    const { from, to } = selection;
+    const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
     
     if (selectedText) {
@@ -156,7 +185,10 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
       
       marks.forEach(mark => {
         if (mark.type.name === 'textStyle' && mark.attrs.fontSize) {
-          currentSize = parseInt(mark.attrs.fontSize);
+          const size = parseInt(mark.attrs.fontSize);
+          if (!isNaN(size)) {
+            currentSize = size;
+          }
         }
       });
       
@@ -164,22 +196,21 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
       editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
     } else {
       // Apply to current paragraph if no selection
-      editor.chain().focus().setFontSize('14px').run();
+      editor.chain().focus().setMark('textStyle', { fontSize: '14px' }).run();
     }
   }, [editor]);
 
   const setFontSize = useCallback((size: string) => {
     if (!editor) return;
     
-    const selection = editor.state.selection;
-    const { from, to } = selection;
+    const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
     
     if (selectedText) {
       editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
     } else {
       // Apply to current paragraph if no selection
-      editor.chain().focus().setFontSize(`${size}px`).run();
+      editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
     }
   }, [editor]);
 
@@ -456,7 +487,7 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
         <div className="min-h-[600px]">
           <EditorContent 
             editor={editor} 
-            className="h-full focus:outline-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4 [&_*]:text-base [&_p]:text-base [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg"
+            className="h-full [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4 [&_*]:text-base [&_p]:text-base [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg"
           />
         </div>
       </div>
