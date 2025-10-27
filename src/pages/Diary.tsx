@@ -28,14 +28,14 @@ interface Book {
 
 // Predefined color options for books
 const BOOK_COLORS = [
-  { name: "Purple", value: "bg-purple-500" },
-  { name: "Blue", value: "bg-blue-500" },
-  { name: "Green", value: "bg-green-500" },
-  { name: "Yellow", value: "bg-yellow-500" },
-  { name: "Red", value: "bg-red-500" },
-  { name: "Pink", value: "bg-pink-500" },
-  { name: "Indigo", value: "bg-indigo-500" },
+  { name: "Amber", value: "bg-amber-500" },
+  { name: "Orange", value: "bg-orange-500" },
+  { name: "Rose", value: "bg-rose-500" },
   { name: "Teal", value: "bg-teal-500" },
+  { name: "Indigo", value: "bg-indigo-500" },
+  { name: "Emerald", value: "bg-emerald-500" },
+  { name: "Pink", value: "bg-pink-500" },
+  { name: "Slate", value: "bg-slate-500" },
 ];
 
 const Diary = () => {
@@ -209,7 +209,7 @@ const Diary = () => {
                 onClick={() => setCurrentBook(book)}
               >
                 <div className="flex items-center">
-                  <div className={`w-3 h-3 rounded-full mr-2 ${book.color || 'bg-purple-500'}`}></div>
+                  <div className={`w-3 h-3 rounded-full mr-2 ${book.color || 'bg-amber-500'}`}></div>
                   <span className="truncate">{book.name}</span>
                 </div>
                 <span className="bg-muted text-muted-foreground text-xs rounded-full px-2 py-0.5">
@@ -295,7 +295,7 @@ const Diary = () => {
           <h2 className="text-lg font-medium">
             {currentBook ? (
               <div className="flex items-center">
-                <div className={`w-3 h-3 rounded-full mr-2 ${currentBook.color || 'bg-purple-500'}`}></div>
+                <div className={`w-3 h-3 rounded-full mr-2 ${currentBook.color || 'bg-amber-500'}`}></div>
                 {currentBook.name}
               </div>
             ) : "All Entries"}

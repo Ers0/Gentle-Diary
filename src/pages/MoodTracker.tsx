@@ -25,11 +25,11 @@ interface DiaryEntry {
 
 // Mood data structure
 const moodData = [
-  { id: 1, label: "Happy", color: "bg-green-500", emoji: "😊" },
-  { id: 2, label: "Excited", color: "bg-yellow-500", emoji: "😃" },
-  { id: 3, label: "Neutral", color: "bg-gray-500", emoji: "😐" },
-  { id: 4, label: "Sad", color: "bg-blue-500", emoji: "😢" },
-  { id: 5, label: "Angry", color: "bg-red-500", emoji: "😠" }
+  { id: 1, label: "Happy", color: "bg-amber-500", emoji: "😊" },
+  { id: 2, label: "Excited", color: "bg-orange-500", emoji: "😃" },
+  { id: 3, label: "Neutral", color: "bg-slate-500", emoji: "😐" },
+  { id: 4, label: "Sad", color: "bg-teal-500", emoji: "😢" },
+  { id: 5, label: "Angry", color: "bg-rose-500", emoji: "😠" }
 ];
 
 const MoodTrackerPage = () => {

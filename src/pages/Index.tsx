@@ -9,7 +9,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 flex-1 flex flex-col justify-center">
         <div className="text-center mb-16">
           <div className="flex justify-center mb-6">
-            <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4 rounded-full">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 rounded-full">
               <Heart className="h-12 w-12 text-white" />
             </div>
           </div>
@@ -18,7 +18,7 @@ const Index = () => {
             A cozy space for your thoughts and feelings
           </p>
           <div className="flex justify-center gap-3">
-            <Button size="lg" className="rounded-full px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" asChild>
+            <Button size="lg" className="rounded-full px-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" asChild>
               <Link to="/diary">Start Writing</Link>
             </Button>
           </div>
@@ -46,7 +46,7 @@ const Index = () => {
           </div>
 
           <div className="bg-card rounded-2xl p-6 text-center border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-            <div className="bg-gradient-to-br from-violet-400 to-purple-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
+            <div className="bg-gradient-to-br from-rose-400 to-pink-500 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-3">
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <h3 className="font-medium mb-2">Daily Reflection</h3>
