@@ -427,7 +427,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       <div className="flex-1 p-4 overflow-auto">
         <EditorContent 
           editor={editor} 
-          className="min-h-[300px] focus:outline-none prose prose-stone dark:prose-invert max-w-none"
+          className="min-h-[600px] focus:outline-none prose prose-stone dark:prose-invert max-w-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4"
         />
       </div>
     </div>
