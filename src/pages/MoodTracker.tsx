@@ -5,8 +5,9 @@ import { MoodTracker } from "@/components/ui/mood-tracker";
 import { MoodChart } from "@/components/ui/mood-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, isSameDay, parseISO } from "date-fns";
-import { Save, Heart, Sparkles, Brain, CalendarIcon } from "lucide-react";
+import { Save, Heart, Sparkles, Brain, CalendarIcon, Languages } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface MoodEntry {
@@ -32,6 +33,58 @@ const moodData = [
   { id: 5, label: "Angry", color: "bg-rose-500", emoji: "😠" }
 ];
 
+// Translations for mood insights
+const translations = {
+  en: {
+    title: "Mood Tracker",
+    subtitle: "Gently track your emotional well-being",
+    howFeeling: "How are you feeling today?",
+    saveMood: "Save Mood",
+    moodHistory: "Mood History",
+    aiInsights: "AI Mood Insights",
+    getInsights: "Get personalized insights based on your diary entries",
+    analyze: "Analyze Today's Mood",
+    analyzing: "Analyzing...",
+    insights: {
+      frustrated: "It seems like you've been facing some challenges lately. Remember that frustration is often a sign that you're pushing through something important.",
+      anxious: "I notice some anxiety in your writing today. It's completely natural to feel this way when we're uncertain about what's ahead.",
+      happy: "Your words radiate positivity today! Moments like these are precious - savor them and let them fuel you during tougher times.",
+      sad: "Your words suggest you've been feeling down. It's okay to sit with these feelings - they're part of being human.",
+      tired: "You seem to be feeling drained today. Your body might be telling you it's time for some extra rest and care.",
+      grateful: "Your words show gratitude today. Moments of appreciation are powerful anchors for well-being.",
+      overwhelmed: "It looks like you're carrying a lot right now. That's a heavy load, and it's okay to ask for help or take a step back.",
+      balanced: "Your entries today show a nice emotional balance. You seem to be in a peaceful state of mind, which is wonderful."
+    },
+    noEntries: "No diary entries found for today. Write an entry to get personalized mood insights!",
+    predominantMood: "Predominant mood",
+    noMoodEntries: "No mood entries for this date"
+  },
+  pt: {
+    title: "Rastreador de Humor",
+    subtitle: "Acompanhe gentilmente o seu bem-estar emocional",
+    howFeeling: "Como você está se sentindo hoje?",
+    saveMood: "Salvar Humor",
+    moodHistory: "Histórico de Humor",
+    aiInsights: "Insights de Humor com IA",
+    getInsights: "Obtenha insights personalizados com base nas suas entradas de diário",
+    analyze: "Analisar o Humor de Hoje",
+    analyzing: "Analisando...",
+    insights: {
+      frustrated: "Parece que você tem enfrentado alguns desafios ultimamente. Lembre-se de que a frustração é frequentemente um sinal de que você está superando algo importante.",
+      anxious: "Percebo alguma ansiedade na sua escrita hoje. É completamente natural sentir isso quando estamos incertos sobre o que está por vir.",
+      happy: "Suas palavras transbordam positividade hoje! Momentos como esses são preciosos - saboreie-os e deixe que eles o fortaleçam nos momentos mais difíceis.",
+      sad: "Suas palavras sugerem que você tem se sentido para baixo. Tudo bem ficar com esses sentimentos - eles fazem parte de ser humano.",
+      tired: "Você parece estar se sentindo exausto hoje. Seu corpo pode estar dizendo que é hora de descansar um pouco mais.",
+      grateful: "Suas palavras mostram gratidão hoje. Momentos de apreciação são âncoras poderosas para o bem-estar.",
+      overwhelmed: "Parece que você está carregando muito agora. Essa é uma carga pesada, e tudo bem pedir ajuda ou dar um passo para trás.",
+      balanced: "Suas entradas hoje mostram um bom equilíbrio emocional. Você parece estar em um estado de paz mental, o que é maravilhoso."
+    },
+    noEntries: "Nenhuma entrada de diário encontrada para hoje. Escreva uma entrada para obter insights personalizados de humor!",
+    predominantMood: "Humor predominante",
+    noMoodEntries: "Nenhuma entrada de humor para esta data"
+  }
+};
+
 const MoodTrackerPage = () => {
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([
@@ -47,7 +100,10 @@ const MoodTrackerPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [view, setView] = useState<"calendar" | "list">("calendar");
+  const [language, setLanguage] = useState<"en" | "pt">("en");
   const { toast } = useToast();
+  
+  const t = translations[language];
 
   // Load diary entries from localStorage
   useEffect(() => {
@@ -79,8 +135,10 @@ const MoodTrackerPage = () => {
       setSelectedMood(null);
       
       toast({
-        title: "Mood saved",
-        description: "Your mood has been recorded for today.",
+        title: language === "en" ? "Mood saved" : "Humor salvo",
+        description: language === "en" 
+          ? "Your mood has been recorded for today." 
+          : "Seu humor foi registrado para hoje.",
       });
     }
   };
@@ -112,7 +170,7 @@ const MoodTrackerPage = () => {
       const todaysEntries = getTodaysEntries();
       
       if (todaysEntries.length === 0) {
-        setMoodInsights("No diary entries found for today. Write an entry to get personalized mood insights!");
+        setMoodInsights(t.noEntries);
         setIsAnalyzing(false);
         return;
       }
@@ -122,13 +180,13 @@ const MoodTrackerPage = () => {
       
       // Simple keyword-based mood analysis (simulating AI)
       const keywords = {
-        frustrated: ["frustrated", "annoyed", "irritated", "stuck", "difficult", "challenging"],
-        anxious: ["anxious", "worried", "nervous", "stress", "concern", "tense"],
-        happy: ["happy", "joy", "excited", "pleased", "delighted", "wonderful"],
-        sad: ["sad", "depressed", "down", "blue", "unhappy", "miserable"],
-        tired: ["tired", "exhausted", "fatigued", "drained", "weary"],
-        grateful: ["grateful", "thankful", "appreciate", "blessed", "fortunate"],
-        overwhelmed: ["overwhelmed", "burdened", "swamped", "drowning", "pressure"]
+        frustrated: ["frustrated", "annoyed", "irritated", "stuck", "difficult", "challenging", "frustrado", "irritado", "preso", "difícil"],
+        anxious: ["anxious", "worried", "nervous", "stress", "concern", "tense", "ansioso", "preocupado", "nervoso", "estresse"],
+        happy: ["happy", "joy", "excited", "pleased", "delighted", "wonderful", "feliz", "alegria", "animado", "maravilhoso"],
+        sad: ["sad", "depressed", "down", "blue", "unhappy", "miserable", "triste", "deprimido", "para baixo", "infeliz"],
+        tired: ["tired", "exhausted", "fatigued", "drained", "weary", "cansado", "exausto", "fatigado", "esgotado"],
+        grateful: ["grateful", "thankful", "appreciate", "blessed", "fortunate", "grato", "agradecido", "apreciar", "abençoado"],
+        overwhelmed: ["overwhelmed", "burdened", "swamped", "drowning", "pressure", "sobrecarregado", "sobrecarregada", "afogado", "pressão"]
       };
       
       const detectedMoods: string[] = [];
@@ -150,28 +208,24 @@ const MoodTrackerPage = () => {
         let observations = "";
         
         if (detectedMoods.includes("frustrated")) {
-          observations = "It seems like you've been facing some challenges lately. Remember that frustration is often a sign that you're pushing through something important.";
+          observations = t.insights.frustrated;
         } else if (detectedMoods.includes("anxious")) {
-          observations = "I notice some anxiety in your writing today. It's completely natural to feel this way when we're uncertain about what's ahead.";
+          observations = t.insights.anxious;
         } else if (detectedMoods.includes("sad")) {
-          observations = "Your words suggest you've been feeling down. It's okay to sit with these feelings - they're part of being human.";
+          observations = t.insights.sad;
         } else if (detectedMoods.includes("tired")) {
-          observations = "You seem to be feeling drained today. Your body might be telling you it's time for some extra rest and care.";
+          observations = t.insights.tired;
         } else if (detectedMoods.includes("overwhelmed")) {
-          observations = "It looks like you're carrying a lot right now. That's a heavy load, and it's okay to ask for help or take a step back.";
+          observations = t.insights.overwhelmed;
         } else if (detectedMoods.includes("happy") || detectedMoods.includes("grateful")) {
-          observations = "Your words radiate positivity today! Moments like these are precious - savor them and let them fuel you during tougher times.";
+          observations = t.insights.happy;
         } else {
-          observations = "Your emotional landscape seems complex today. That's perfectly normal - we rarely feel just one thing at a time.";
+          observations = t.insights.balanced;
         }
         
-        const moodText = detectedMoods
-          .map(mood => mood)
-          .join(", ");
-        
-        setMoodInsights(`I noticed feelings of ${moodText} in your writing. ${observations}`);
+        setMoodInsights(observations);
       } else {
-        setMoodInsights("Your entries today show a nice emotional balance. You seem to be in a peaceful state of mind, which is wonderful.");
+        setMoodInsights(t.insights.balanced);
       }
       
       setIsAnalyzing(false);
@@ -259,16 +313,30 @@ const MoodTrackerPage = () => {
           <div className="bg-primary/15 p-2 rounded-full">
             <Heart className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">Mood Tracker</h1>
+          <h1 className="text-2xl font-bold">{t.title}</h1>
+          <div className="ml-auto">
+            <Select value={language} onValueChange={(value: "en" | "pt") => setLanguage(value)}>
+              <SelectTrigger className="w-[120px] rounded-full">
+                <div className="flex items-center">
+                  <Languages className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="pt">Português</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <p className="text-muted-foreground mb-8">
-          Gently track your emotional well-being
+          {t.subtitle}
         </p>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card className="border-border/50 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">How are you feeling today?</CardTitle>
+              <CardTitle className="text-lg">{t.howFeeling}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <MoodTracker 
@@ -281,14 +349,14 @@ const MoodTrackerPage = () => {
                 disabled={!selectedMood}
               >
                 <Save className="mr-2 h-4 w-4" />
-                Save Mood
+                {t.saveMood}
               </Button>
             </CardContent>
           </Card>
           
           <Card className="border-border/50 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Mood History</CardTitle>
+              <CardTitle className="text-lg">{t.moodHistory}</CardTitle>
               <div className="flex gap-2">
                 <Button 
                   variant={view === "calendar" ? "default" : "outline"} 
@@ -344,7 +412,11 @@ const MoodTrackerPage = () => {
                             {predominantMood && (
                               <div 
                                 className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full ${predominantMood.color}`}
-                                title={predominantMood.label}
+                                title={language === "en" ? predominantMood.label : 
+                                      predominantMood.label === "Happy" ? "Feliz" :
+                                      predominantMood.label === "Excited" ? "Animado" :
+                                      predominantMood.label === "Neutral" ? "Neutro" :
+                                      predominantMood.label === "Sad" ? "Triste" : "Bravo"}
                               />
                             )}
                           </div>
@@ -356,7 +428,7 @@ const MoodTrackerPage = () => {
                   {selectedDate && (
                     <div className="pt-4 border-t border-border/50">
                       <h3 className="font-medium mb-2">
-                        {format(selectedDate, "MMMM d, yyyy")} Entries
+                        {format(selectedDate, "MMMM d, yyyy")} {t.entries}
                       </h3>
                       {selectedDateEntries.length > 0 ? (
                         <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -372,7 +444,11 @@ const MoodTrackerPage = () => {
                                     <div className={`w-3 h-3 rounded-full ${moodInfo.color} mr-2`} />
                                   )}
                                   <span className="text-sm">
-                                    {moodInfo?.label || "Unknown"}
+                                    {language === "en" ? moodInfo?.label : 
+                                     moodInfo?.label === "Happy" ? "Feliz" :
+                                     moodInfo?.label === "Excited" ? "Animado" :
+                                     moodInfo?.label === "Neutral" ? "Neutro" :
+                                     moodInfo?.label === "Sad" ? "Triste" : "Bravo"}
                                   </span>
                                 </div>
                                 <span className="text-xs text-muted-foreground">
@@ -384,7 +460,7 @@ const MoodTrackerPage = () => {
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
-                          No mood entries for this date
+                          {t.noMoodEntries}
                         </p>
                       )}
                     </div>
@@ -408,7 +484,11 @@ const MoodTrackerPage = () => {
                             )}
                             <div>
                               <p className="font-medium text-sm">
-                                {moodInfo?.label || "Unknown"}
+                                {language === "en" ? moodInfo?.label : 
+                                 moodInfo?.label === "Happy" ? "Feliz" :
+                                 moodInfo?.label === "Excited" ? "Animado" :
+                                 moodInfo?.label === "Neutral" ? "Neutro" :
+                                 moodInfo?.label === "Sad" ? "Triste" : "Bravo"}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {format(entry.date, "MMM d, h:mm a")}
@@ -431,13 +511,13 @@ const MoodTrackerPage = () => {
               <div className="bg-secondary/15 p-1.5 rounded-full">
                 <Brain className="h-4 w-4 text-secondary" />
               </div>
-              AI Mood Insights
+              {t.aiInsights}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-muted-foreground">
-                Get personalized insights based on your diary entries
+                {t.getInsights}
               </p>
               
               <Button 
@@ -446,13 +526,13 @@ const MoodTrackerPage = () => {
                 disabled={isAnalyzing}
               >
                 <Sparkles className="mr-2 h-4 w-4" />
-                {isAnalyzing ? "Analyzing..." : "Analyze Today's Mood"}
+                {isAnalyzing ? t.analyzing : t.analyze}
               </Button>
               
               {moodInsights && (
                 <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
                   <p className="text-sm">
-                    <span className="font-medium">Insight:</span> {moodInsights}
+                    <span className="font-medium">{language === "en" ? "Insight:" : "Percepção:"}</span> {moodInsights}
                   </p>
                 </div>
               )}
