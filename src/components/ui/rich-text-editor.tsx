@@ -10,6 +10,7 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
 import { Link } from "@tiptap/extension-link";
+import { Extension } from "@tiptap/core";
 import { 
   Bold, 
   Italic, 
@@ -38,6 +39,52 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 
+// Custom FontSize extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['textStyle'],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize.replace('px', ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {};
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}px`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize: (fontSize: string) => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize })
+          .run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: null })
+          .removeEmptyTextStyle()
+          .run();
+      },
+    };
+  },
+});
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -60,6 +107,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         placeholder: "Start writing your diary entry...",
       }),
       TextStyle,
+      FontSize,
       Color,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -100,17 +148,15 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   };
 
   const increaseFontSize = () => {
-    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
-    const sizeValue = parseInt(currentSize);
-    const newSize = Math.min(sizeValue + 2, 32);
-    editor.chain().focus().setFontSize(`${newSize}px`).run();
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16';
+    const newSize = Math.min(parseInt(currentSize) + 2, 32);
+    editor.chain().focus().setFontSize(newSize.toString()).run();
   };
 
   const decreaseFontSize = () => {
-    const currentSize = editor.getAttributes('textStyle').fontSize || '16px';
-    const sizeValue = parseInt(currentSize);
-    const newSize = Math.max(sizeValue - 2, 12);
-    editor.chain().focus().setFontSize(`${newSize}px`).run();
+    const currentSize = editor.getAttributes('textStyle').fontSize || '16';
+    const newSize = Math.max(parseInt(currentSize) - 2, 12);
+    editor.chain().focus().setFontSize(newSize.toString()).run();
   };
 
   const setFontSize = (size: string) => {
@@ -200,28 +246,28 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-xs"
-                onClick={() => setFontSize('12px')}
+                onClick={() => setFontSize('12')}
               >
                 <span className="text-xs">Small</span>
               </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start text-xs"
-                onClick={() => setFontSize('16px')}
+                onClick={() => setFontSize('16')}
               >
                 <span className="text-sm">Normal</span>
               </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start text-xs"
-                onClick={() => setFontSize('20px')}
+                onClick={() => setFontSize('20')}
               >
                 <span className="text-lg">Large</span>
               </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-start text-xs"
-                onClick={() => setFontSize('24px')}
+                onClick={() => setFontSize('24')}
               >
                 <span className="text-xl">X-Large</span>
               </Button>
