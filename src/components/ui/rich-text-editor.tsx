@@ -425,12 +425,14 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         </Popover>
       </div>
       
-      {/* Editor Content - Fixed sizing and highlighting issues */}
+      {/* Editor Content - Fixed interaction area */}
       <div className="flex-1 p-4 overflow-auto">
-        <EditorContent 
-          editor={editor} 
-          className="min-h-[600px] focus:outline-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4 [&_*]:text-base [&_p]:text-base [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg"
-        />
+        <div className="min-h-[600px]">
+          <EditorContent 
+            editor={editor} 
+            className="h-full focus:outline-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4 [&_*]:text-base [&_p]:text-base [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg"
+          />
+        </div>
       </div>
     </div>
   );
