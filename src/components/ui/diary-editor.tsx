@@ -1,34 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Save, Eye, SquarePen, Calendar, Smile } from "lucide-react";
 import { format } from "date-fns";
-import { 
-  Save, 
-  Bold, 
-  Italic, 
-  Underline, 
-  Heading1, 
-  Heading2, 
-  List, 
-  ListOrdered,
-  Quote,
-  Link,
-  Image,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  Minus,
-  Type
-} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface DiaryEntry {
   id: string;
@@ -41,59 +22,50 @@ interface DiaryEntry {
 interface DiaryEditorProps {
   entry: DiaryEntry;
   onSave: (entry: DiaryEntry) => void;
-  currentBookId?: string | null;
+  currentBookId?: string;
 }
 
-export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
+// Custom components for markdown rendering
+const MarkdownComponents = {
+  h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
+  h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold mt-3 mb-2 text-muted-foreground" {...props} />,
+  h3: ({ node, ...props }: any) => <h3 className="text-lg font-semibold mt-3 mb-2" {...props} />,
+  p: ({ node, ...props }: any) => <p className="mb-2" {...props} />,
+  ul: ({ node, ...props }: any) => <ul className="my-2 list-disc pl-5" {...props} />,
+  ol: ({ node, ...props }: any) => <ol className="my-2 list-decimal pl-5" {...props} />,
+  li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
+  blockquote: ({ node, ...props }: any) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2" {...props} />,
+  hr: ({ node, ...props }: any) => <hr className="my-4 border-border" {...props} />,
+  strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
+  em: ({ node, ...props }: any) => <em className="italic" {...props} />,
+  u: ({ node, ...props }: any) => <u className="underline" {...props} />,
+};
+
+export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry.content);
-  const [title, setTitle] = useState("");
+  const [isPreview, setIsPreview] = useState(false);
+  const [mood, setMood] = useState<number | null>(entry.mood || null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  
-  // Load auto-subtitle settings
-  const [autoSubtitle, setAutoSubtitle] = useState(false);
-  const [subtitleLines, setSubtitleLines] = useState(3);
-  
+
+  // Auto-resize textarea
   useEffect(() => {
-    const savedAutoSubtitle = localStorage.getItem("autoSubtitle");
-    const savedSubtitleLines = localStorage.getItem("subtitleLines");
-    
-    if (savedAutoSubtitle) {
-      setAutoSubtitle(JSON.parse(savedAutoSubtitle));
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-    
-    if (savedSubtitleLines) {
-      setSubtitleLines(parseInt(savedSubtitleLines));
-    }
-  }, []);
-  
-  // Extract title from first line of content
-  useEffect(() => {
-    const lines = entry.content.split('\n');
-    if (lines.length > 0 && lines[0].startsWith('# ')) {
-      setTitle(lines[0].substring(2));
-      setContent(lines.slice(1).join('\n'));
-    } else {
-      setTitle(lines[0] || "");
-      setContent(lines.slice(1).join('\n'));
-    }
-  }, [entry.content]);
+  }, [content]);
 
   const handleSave = () => {
-    // Format content with title
-    let formattedContent = "";
-    
-    if (title.trim()) {
-      formattedContent += `# ${title}\n\n`;
-    }
-    
-    formattedContent += content;
-    
-    onSave({
+    const updatedEntry: DiaryEntry = {
       ...entry,
-      content: formattedContent,
-      bookId: currentBookId || entry.bookId
-    });
+      content,
+      mood,
+      bookId: currentBookId || entry.bookId,
+      date: new Date() // Update timestamp on save
+    };
+    
+    onSave(updatedEntry);
     
     toast({
       title: "Entry saved",
@@ -101,365 +73,279 @@ export const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
-  const insertFormatting = (prefix: string, suffix: string = "", block: boolean = false) => {
+  const handleInsertTitle = () => {
+    const title = "# ";
     const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    let newText = "";
-    let newCursorPos = start;
-    
-    if (block) {
-      // For block elements like headings, quotes, dividers
-      const lines = content.split('\n');
-      const lineStart = content.substring(0, start).split('\n').length - 1;
-      lines[lineStart] = prefix + lines[lineStart];
-      newText = lines.join('\n');
-      newCursorPos = start + prefix.length;
-    } else if (selectedText) {
-      // For inline formatting with selected text
-      newText = content.substring(0, start) + prefix + selectedText + suffix + content.substring(end);
-      newCursorPos = start + prefix.length + selectedText.length + suffix.length;
-    } else {
-      // For inserting formatting characters at cursor position
-      newText = content.substring(0, start) + prefix + content.substring(end);
-      newCursorPos = start + prefix.length;
-    }
-    
-    setContent(newText);
-    
-    // Set cursor position
-    setTimeout(() => {
-      if (textarea) {
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.substring(0, start) + title + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
         textarea.focus();
-      }
-    }, 0);
-  };
-
-  const insertList = (ordered: boolean = false) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    if (selectedText) {
-      // Convert selected text to list
-      const lines = selectedText.split('\n');
-      const listLines = lines.map((line, index) => 
-        ordered ? `${index + 1}. ${line}` : `- ${line}`
-      );
-      
-      const newText = content.substring(0, start) + listLines.join('\n') + content.substring(end);
-      setContent(newText);
-      
-      // Set cursor position after inserted text
-      setTimeout(() => {
-        if (textarea) {
-          const newCursorPos = start + listLines.join('\n').length;
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-          textarea.focus();
-        }
-      }, 0);
-    } else {
-      // Insert list marker at cursor with a new line
-      const listMarker = ordered ? "1. " : "- ";
-      const currentContent = content.substring(0, start);
-      const afterContent = content.substring(end);
-      
-      // Check if we need to add a new line before the list marker
-      const needsNewLine = start > 0 && content[start - 1] !== '\n';
-      const newText = currentContent + (needsNewLine ? '\n' : '') + listMarker + afterContent;
-      
-      setContent(newText);
-      
-      // Set cursor position after list marker
-      setTimeout(() => {
-        if (textarea) {
-          const newCursorPos = start + (needsNewLine ? 1 : 0) + listMarker.length;
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-          textarea.focus();
-        }
+        textarea.setSelectionRange(start + title.length, start + title.length);
       }, 0);
     }
   };
 
-  const insertQuote = () => {
+  const handleInsertSubtitle = () => {
+    const subtitle = "## ";
     const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    if (selectedText) {
-      // Convert selected text to quote (each line gets > prefix)
-      const lines = selectedText.split('\n');
-      const quotedLines = lines.map(line => `> ${line}`);
-      
-      const newText = content.substring(0, start) + quotedLines.join('\n') + content.substring(end);
-      setContent(newText);
-      
-      // Set cursor position after inserted text
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.substring(0, start) + subtitle + content.substring(end);
+      setContent(newContent);
       setTimeout(() => {
-        if (textarea) {
-          const newCursorPos = start + quotedLines.join('\n').length;
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-          textarea.focus();
-        }
-      }, 0);
-    } else {
-      // Insert quote marker at cursor with a new line
-      const currentContent = content.substring(0, start);
-      const afterContent = content.substring(end);
-      
-      // Check if we need to add a new line before the quote marker
-      const needsNewLine = start > 0 && content[start - 1] !== '\n';
-      const newText = currentContent + (needsNewLine ? '\n' : '') + "> " + afterContent;
-      
-      setContent(newText);
-      
-      // Set cursor position after quote marker
-      setTimeout(() => {
-        if (textarea) {
-          const newCursorPos = start + (needsNewLine ? 1 : 0) + 2;
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-          textarea.focus();
-        }
+        textarea.focus();
+        textarea.setSelectionRange(start + subtitle.length, start + subtitle.length);
       }, 0);
     }
   };
 
-  const insertFontSize = (size: string) => {
+  const handleInsertList = () => {
+    const list = "- ";
     const textarea = textareaRef.current;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    if (selectedText) {
-      // Wrap selected text with font size marker
-      const newText = content.substring(0, start) + `{${size}}${selectedText}{/${size}}` + content.substring(end);
-      setContent(newText);
-      
-      // Set cursor position after inserted text
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.substring(0, start) + list + content.substring(end);
+      setContent(newContent);
       setTimeout(() => {
-        if (textarea) {
-          const newCursorPos = start + `{${size}}${selectedText}{/${size}}`.length;
-          textarea.setSelectionRange(newCursorPos, newCursorPos);
-          textarea.focus();
-        }
+        textarea.focus();
+        textarea.setSelectionRange(start + list.length, start + list.length);
       }, 0);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && autoSubtitle && textareaRef.current) {
-      // Check if we should auto-create a subtitle
-      const cursorPos = textareaRef.current.selectionStart;
-      const textBeforeCursor = content.substring(0, cursorPos);
-      const lines = textBeforeCursor.split('\n');
-      
-      // Count non-empty lines
-      const nonEmptyLines = lines.filter(line => line.trim() !== '');
-      
-      if (nonEmptyLines.length === subtitleLines) {
-        e.preventDefault();
-        
-        // Get the current line (the one we're about to convert)
-        const currentLineIndex = lines.length - 1;
-        const currentLine = lines[currentLineIndex];
-        
-        // Wrap current line with subtitle formatting
-        const newLine = `## ${currentLine.trim()}`;
-        lines[currentLineIndex] = newLine;
-        
-        // Reconstruct content
-        const newTextBeforeCursor = lines.join('\n');
-        const newText = newTextBeforeCursor + content.substring(cursorPos);
-        
-        setContent(newText);
-        
-        // Move cursor to end of the subtitle
-        setTimeout(() => {
-          if (textareaRef.current) {
-            const newCursorPos = newTextBeforeCursor.length;
-            textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
-            textareaRef.current.focus();
-          }
-        }, 0);
-      }
+  const handleInsertQuote = () => {
+    const quote = "> ";
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.substring(0, start) + quote + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + quote.length, start + quote.length);
+      }, 0);
+    }
+  };
+
+  const handleInsertDivider = () => {
+    const divider = "\n---\n";
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newContent = content.substring(0, start) + divider + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + divider.length, start + divider.length);
+      }, 0);
+    }
+  };
+
+  const handleInsertFontSize = (size: string) => {
+    const openingTag = `{${size}}`;
+    const closingTag = `{/${size}}`;
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.substring(start, end);
+      const newContent = content.substring(0, start) + openingTag + selectedText + closingTag + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + openingTag.length, start + openingTag.length + selectedText.length);
+      }, 0);
+    }
+  };
+
+  const handleInsertBold = () => {
+    const bold = "**";
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.substring(start, end);
+      const newContent = content.substring(0, start) + bold + selectedText + bold + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + bold.length, start + bold.length + selectedText.length);
+      }, 0);
+    }
+  };
+
+  const handleInsertItalic = () => {
+    const italic = "*";
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.substring(start, end);
+      const newContent = content.substring(0, start) + italic + selectedText + italic + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + italic.length, start + italic.length + selectedText.length);
+      }, 0);
+    }
+  };
+
+  const handleInsertUnderline = () => {
+    const underline = "__";
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = content.substring(start, end);
+      const newContent = content.substring(0, start) + underline + selectedText + underline + content.substring(end);
+      setContent(newContent);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + underline.length, start + underline.length + selectedText.length);
+      }, 0);
     }
   };
 
   return (
-    <Card className="border-border/50 shadow-sm">
-      <CardContent className="p-6">
-        <div className="mb-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Entry title..."
-            className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none focus:ring-0 p-0 placeholder:text-muted-foreground"
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            {format(entry.date, "EEEE, MMMM d, yyyy")}
-          </p>
-        </div>
-        
-        <div className="border-b border-border/50 pb-3 mb-4">
-          <div className="flex flex-wrap gap-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("**", "**")}
-              aria-label="Bold"
-            >
-              <Bold className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("*", "*")}
-              aria-label="Italic"
-            >
-              <Italic className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("__", "__")}
-              aria-label="Underline"
-            >
-              <Underline className="h-3 w-3" />
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full h-8 w-8 p-0"
-                  aria-label="Font Size"
-                >
-                  <Type className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-40">
-                <DropdownMenuItem onClick={() => insertFontSize("small")}>
-                  <span className="text-xs">Small Text</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => insertFontSize("normal")}>
-                  <span className="text-sm">Normal Text</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => insertFontSize("large")}>
-                  <span className="text-base">Large Text</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => insertFontSize("xlarge")}>
-                  <span className="text-lg">Extra Large</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <div className="w-px bg-border mx-1" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("# ", "", true)}
-              aria-label="Heading 1"
-            >
-              <Heading1 className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("## ", "", true)}
-              aria-label="Heading 2"
-            >
-              <Heading2 className="h-3 w-3" />
-            </Button>
-            <div className="w-px bg-border mx-1" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertList(false)}
-              aria-label="Bullet List"
-            >
-              <List className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertList(true)}
-              aria-label="Numbered List"
-            >
-              <ListOrdered className="h-3 w-3" />
-            </Button>
-            <div className="w-px bg-border mx-1" />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={insertQuote}
-              aria-label="Quote"
-            >
-              <Quote className="h-3 w-3" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-full h-8 w-8 p-0"
-              onClick={() => insertFormatting("---\n", "", true)}
-              aria-label="Divider"
-            >
-              <Minus className="h-3 w-3" />
-            </Button>
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/15 p-2 rounded-full">
+            <SquarePen className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold">Diary Entry</h1>
+            <p className="text-sm text-muted-foreground">
+              {format(entry.date, "MMMM d, yyyy h:mm a")}
+            </p>
           </div>
         </div>
-        
-        <Textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Write your thoughts here..."
-          className="min-h-[400px] resize-none border-0 p-0 focus-visible:ring-0"
-          onKeyDown={handleKeyDown}
-        />
-        
-        <div className="mt-6 flex justify-end">
+        <div className="flex gap-2">
           <Button 
-            className="rounded-full px-5 bg-primary hover:bg-primary/90"
-            onClick={handleSave}
+            variant={isPreview ? "outline" : "secondary"} 
+            size="sm" 
+            className="rounded-full"
+            onClick={() => setIsPreview(false)}
           >
-            <Save className="mr-2 h-4 w-4" />
-            Save Entry
+            <SquarePen className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button 
+            variant={!isPreview ? "outline" : "secondary"} 
+            size="sm" 
+            className="rounded-full"
+            onClick={() => setIsPreview(true)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview
+          </Button>
+          <Button className="rounded-full bg-primary hover:bg-primary/90" onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Save
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <Card className="flex-1 flex flex-col border-border/50 shadow-sm">
+        <CardContent className="p-0 flex-1 flex flex-col">
+          {isPreview ? (
+            <div className="flex-1 p-6 overflow-y-auto">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]} 
+                components={MarkdownComponents}
+              >
+                {content || "Your entry is empty. Start writing to see the preview."}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2 p-4 border-b border-border/50">
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertTitle}>
+                  H1
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertSubtitle}>
+                  H2
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertList}>
+                  List
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertQuote}>
+                  Quote
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertDivider}>
+                  Divider
+                </Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleInsertFontSize("small")}>
+                  Small
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleInsertFontSize("normal")}>
+                  Normal
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleInsertFontSize("large")}>
+                  Large
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => handleInsertFontSize("xlarge")}>
+                  X-Large
+                </Button>
+                <Separator orientation="vertical" className="h-6" />
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertBold}>
+                  <strong>B</strong>
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertItalic}>
+                  <em>I</em>
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={handleInsertUnderline}>
+                  <u>U</u>
+                </Button>
+              </div>
+              <Textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Start writing your diary entry..."
+                className="flex-1 border-0 rounded-none resize-none focus-visible:ring-0 p-6 text-base"
+                style={{ minHeight: "300px" }}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Mood:</span>
+          {[1, 2, 3, 4, 5].map((moodValue) => (
+            <Button
+              key={moodValue}
+              variant="outline"
+              size="icon"
+              className={`rounded-full w-8 h-8 ${
+                mood === moodValue 
+                  ? "bg-primary text-primary-foreground" 
+                  : "hover:bg-muted"
+              }`}
+              onClick={() => setMood(moodValue === mood ? null : moodValue)}
+            >
+              {moodValue === 1 && "😊"}
+              {moodValue === 2 && "😃"}
+              {moodValue === 3 && "😐"}
+              {moodValue === 4 && "😢"}
+              {moodValue === 5 && "😠"}
+            </Button>
+          ))}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {content.length} characters
+        </div>
+      </div>
+    </div>
   );
-};
+}

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
@@ -35,95 +37,20 @@ const BOOK_COLORS = [
   { name: "Teal", value: "bg-teal-500" },
 ];
 
-// Function to format markdown-like content for display
-const formatContentForDisplay = (content: string) => {
-  if (!content) return "";
-
-  // Split content into lines
-  const lines = content.split('\n');
-  
-  // Process lines to convert markdown-like syntax to HTML
-  let processedLines: string[] = [];
-  
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-    
-    // Handle titles (H1)
-    if (line.startsWith('# ') && !line.startsWith('## ')) {
-      processedLines.push(`<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`);
-      continue;
-    }
-    
-    // Handle subtitles (H2)
-    if (line.startsWith('## ')) {
-      processedLines.push(`<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`);
-      continue;
-    }
-    
-    // Handle horizontal rule
-    if (line === '---') {
-      processedLines.push(`<hr class="my-4 border-border" />`);
-      continue;
-    }
-    
-    // Handle blockquotes
-    if (line.startsWith('> ')) {
-      processedLines.push(`<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${line.substring(2)}</blockquote>`);
-      continue;
-    }
-    
-    // Handle bullet lists
-    if (line.startsWith('- ')) {
-      let listItems = [];
-      // Collect all consecutive list items
-      while (i < lines.length && lines[i].startsWith('- ')) {
-        listItems.push(`<li class="ml-4 list-disc">${lines[i].substring(2)}</li>`);
-        i++;
-      }
-      i--; // Adjust for the extra increment
-      processedLines.push(`<ul class="my-2">${listItems.join('')}</ul>`);
-      continue;
-    }
-    
-    // Handle numbered lists
-    if (/^\d+\.\s/.test(line)) {
-      let listItems = [];
-      // Collect all consecutive list items
-      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
-        listItems.push(`<li class="ml-4 list-decimal">${lines[i].replace(/^\d+\.\s/, '')}</li>`);
-        i++;
-      }
-      i--; // Adjust for the extra increment
-      processedLines.push(`<ol class="my-2 list-decimal">${listItems.join('')}</ol>`);
-      continue;
-    }
-    
-    // Handle font sizes
-    let processedLine = line;
-    processedLine = processedLine.replace(/\{small\}(.*?)\{\/small\}/g, '<span class="text-xs">$1</span>');
-    processedLine = processedLine.replace(/\{normal\}(.*?)\{\/normal\}/g, '<span class="text-sm">$1</span>');
-    processedLine = processedLine.replace(/\{large\}(.*?)\{\/large\}/g, '<span class="text-lg">$1</span>');
-    processedLine = processedLine.replace(/\{xlarge\}(.*?)\{\/xlarge\}/g, '<span class="text-xl">$1</span>');
-    
-    // Handle bold
-    processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
-    
-    // Handle italic
-    processedLine = processedLine.replace(/\*(.*?)\*/g, '<em class="italic">$1</em>');
-    
-    // Handle underline
-    processedLine = processedLine.replace(/__(.*?)__/g, '<u class="underline">$1</u>');
-    
-    // Handle paragraphs
-    if (processedLine.trim() === '') {
-      processedLines.push('<br/>');
-    } else {
-      processedLines.push(`<p class="mb-2">${processedLine}</p>`);
-    }
-  }
-  
-  // Join processed lines
-  return processedLines.join('');
+// Custom components for markdown rendering
+const MarkdownComponents = {
+  h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
+  h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold mt-3 mb-2 text-muted-foreground" {...props} />,
+  h3: ({ node, ...props }: any) => <h3 className="text-lg font-semibold mt-3 mb-2" {...props} />,
+  p: ({ node, ...props }: any) => <p className="mb-2" {...props} />,
+  ul: ({ node, ...props }: any) => <ul className="my-2 list-disc pl-5" {...props} />,
+  ol: ({ node, ...props }: any) => <ol className="my-2 list-decimal pl-5" {...props} />,
+  li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
+  blockquote: ({ node, ...props }: any) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2" {...props} />,
+  hr: ({ node, ...props }: any) => <hr className="my-4 border-border" {...props} />,
+  strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
+  em: ({ node, ...props }: any) => <em className="italic" {...props} />,
+  u: ({ node, ...props }: any) => <u className="underline" {...props} />,
 };
 
 const Diary = () => {
@@ -434,12 +361,14 @@ const Diary = () => {
                             {format(entry.date, "h:mm a")}
                           </span>
                         </div>
-                        <div 
-                          className="mt-2 text-muted-foreground text-sm line-clamp-3"
-                          dangerouslySetInnerHTML={{ 
-                            __html: formatContentForDisplay(entry.content.split('\n').slice(0, 5).join('\n')) 
-                          }}
-                        />
+                        <div className="mt-2 text-muted-foreground text-sm line-clamp-3">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]} 
+                            components={MarkdownComponents}
+                          >
+                            {entry.content}
+                          </ReactMarkdown>
+                        </div>
                         {entry.mood && (
                           <div className="mt-2 flex items-center">
                             <FileText className="h-3 w-3 mr-1 text-muted-foreground" />
