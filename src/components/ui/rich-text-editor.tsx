@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
-import TextAlign from "@tiptap/extension-text-align";
-import Highlight from "@tiptap/extension-highlight";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
+import { StarterKit } from "@tiptap/starter-kit";
+import { Placeholder } from "@tiptap/extension-placeholder";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Highlight } from "@tiptap/extension-highlight";
+import { Underline } from "@tiptap/extension-underline";
+import { Link } from "@tiptap/extension-link";
+import { CharacterCount } from "@tiptap/extension-character-count";
 import { 
   Bold, 
   Italic, 
@@ -67,6 +68,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       Link.configure({
         openOnClick: false,
       }),
+      CharacterCount,
     ],
     content,
     onUpdate: ({ editor }) => {
