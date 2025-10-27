@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette } from "lucide-react";
 import { format } from "date-fns";
-import { remarkFontSize, markdownComponents } from "@/utils/markdown";
+import { remarkFontSize, markdownComponents } from "@/utils/markdown.tsx";
 
 interface DiaryEntry {
   id: string;

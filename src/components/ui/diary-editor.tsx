@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Save, Eye, SquarePen, Calendar, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { remarkFontSize, markdownComponents } from "@/utils/markdown";
+import { remarkFontSize, markdownComponents } from "@/utils/markdown.tsx";
 
 interface DiaryEntry {
   id: string;
