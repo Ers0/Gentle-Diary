@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Save, Eye, SquarePen, Calendar, Smile } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { remarkFontSize, markdownComponents } from "@/utils/markdown";
 
 interface DiaryEntry {
   id: string;
@@ -24,22 +25,6 @@ interface DiaryEditorProps {
   onSave: (entry: DiaryEntry) => void;
   currentBookId?: string;
 }
-
-// Custom components for markdown rendering
-const MarkdownComponents = {
-  h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
-  h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold mt-3 mb-2 text-muted-foreground" {...props} />,
-  h3: ({ node, ...props }: any) => <h3 className="text-lg font-semibold mt-3 mb-2" {...props} />,
-  p: ({ node, ...props }: any) => <p className="mb-2" {...props} />,
-  ul: ({ node, ...props }: any) => <ul className="my-2 list-disc pl-5" {...props} />,
-  ol: ({ node, ...props }: any) => <ol className="my-2 list-decimal pl-5" {...props} />,
-  li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
-  blockquote: ({ node, ...props }: any) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2" {...props} />,
-  hr: ({ node, ...props }: any) => <hr className="my-4 border-border" {...props} />,
-  strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
-  em: ({ node, ...props }: any) => <em className="italic" {...props} />,
-  u: ({ node, ...props }: any) => <u className="underline" {...props} />,
-};
 
 export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry.content);
@@ -258,8 +243,9 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
           {isPreview ? (
             <div className="flex-1 p-6 overflow-y-auto">
               <ReactMarkdown 
-                remarkPlugins={[remarkGfm]} 
-                components={MarkdownComponents}
+                remarkPlugins={[remarkGfm, remarkFontSize]} 
+                components={markdownComponents}
+                className="prose prose-stone dark:prose-invert max-w-none"
               >
                 {content || "Your entry is empty. Start writing to see the preview."}
               </ReactMarkdown>
