@@ -31,7 +31,7 @@ import {
   Type,
   Plus,
   Minus
-} from "licade-react";
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
