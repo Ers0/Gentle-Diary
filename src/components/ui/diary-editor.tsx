@@ -242,13 +242,14 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         <CardContent className="p-0 flex-1 flex flex-col">
           {isPreview ? (
             <div className="flex-1 p-6 overflow-y-auto">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm, remarkFontSize]} 
-                components={markdownComponents}
-                className="prose prose-stone dark:prose-invert max-w-none"
-              >
-                {content || "Your entry is empty. Start writing to see the preview."}
-              </ReactMarkdown>
+              <div className="prose prose-stone dark:prose-invert max-w-none">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm, remarkFontSize]} 
+                  components={markdownComponents}
+                >
+                  {content || "Your entry is empty. Start writing to see the preview."}
+                </ReactMarkdown>
+              </div>
             </div>
           ) : (
             <>

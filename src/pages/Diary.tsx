@@ -347,13 +347,14 @@ const Diary = () => {
                           </span>
                         </div>
                         <div className="mt-2 text-muted-foreground text-sm line-clamp-3">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm, remarkFontSize]} 
-                            components={markdownComponents}
-                            className="prose prose-stone dark:prose-invert max-w-none"
-                          >
-                            {entry.content}
-                          </ReactMarkdown>
+                          <div className="prose prose-stone dark:prose-invert max-w-none">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm, remarkFontSize]} 
+                              components={markdownComponents}
+                            >
+                              {entry.content}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                         {entry.mood && (
                           <div className="mt-2 flex items-center">

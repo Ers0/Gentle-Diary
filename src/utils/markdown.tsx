@@ -33,6 +33,6 @@ export const markdownComponents = {
   strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
   em: ({ node, ...props }: any) => <em className="italic" {...props} />,
   u: ({ node, ...props }: any) => <u className="underline" {...props} />,
-  // Handle custom HTML elements
-  span: ({ node, className, ...props }: any) => <span className={className} {...props} />,
+  // Handle custom HTML elements - removed className from props
+  span: ({ node, ...props }: any) => <span {...props} />,
 };
