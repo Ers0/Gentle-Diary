@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extension-placeholder";
@@ -43,79 +43,82 @@ interface RichTextEditorProps {
   onChange: (content: string) => void;
 }
 
-const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
+const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) => {
   const [color, setColor] = useState("#000000");
   const [linkUrl, setLinkUrl] = useState("");
   const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
 
+  // Memoize extensions to prevent re-creation on every render
+  const extensions = useCallback(() => [
+    StarterKit.configure({
+      heading: {
+        levels: [1, 2, 3],
+      },
+      codeBlock: false,
+      listItem: {
+        HTMLAttributes: {
+          class: 'mb-1',
+        },
+      },
+      bulletList: {
+        HTMLAttributes: {
+          class: 'mb-4 pl-6 list-disc',
+        },
+      },
+      orderedList: {
+        HTMLAttributes: {
+          class: 'mb-4 pl-6 list-decimal',
+        },
+      },
+    }),
+    Placeholder.configure({
+      placeholder: "Start writing your diary entry...",
+    }),
+    TextStyle,
+    Color,
+    TextAlign.configure({
+      types: ["heading", "paragraph"],
+    }),
+    Highlight,
+    Underline,
+    Link.configure({
+      openOnClick: false,
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-        codeBlock: false,
-        listItem: {
-          HTMLAttributes: {
-            class: 'mb-1',
-          },
-        },
-        bulletList: {
-          HTMLAttributes: {
-            class: 'mb-4 pl-6 list-disc',
-          },
-        },
-        orderedList: {
-          HTMLAttributes: {
-            class: 'mb-4 pl-6 list-decimal',
-          },
-        },
-      }),
-      Placeholder.configure({
-        placeholder: "Start writing your diary entry...",
-      }),
-      TextStyle,
-      Color,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      Highlight,
-      Underline,
-      Link.configure({
-        openOnClick: false,
-      }),
-    ],
+    extensions: extensions(),
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
   });
 
-  // Update editor content when prop changes
+  // Update editor content when prop changes - only when content actually changes
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);
     }
   }, [content, editor]);
 
-  if (!editor) {
-    return null;
-  }
-
-  const addLink = () => {
-    if (linkUrl) {
+  const addLink = useCallback(() => {
+    if (linkUrl && editor) {
       editor.chain().focus().setLink({ href: linkUrl }).run();
       setLinkUrl("");
       setIsLinkPopoverOpen(false);
     }
-  };
+  }, [linkUrl, editor]);
 
-  const unsetLink = () => {
-    editor.chain().focus().unsetLink().run();
-  };
+  const unsetLink = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().unsetLink().run();
+    }
+  }, [editor]);
 
   // Font size handling using inline styles
-  const increaseFontSize = () => {
+  const increaseFontSize = useCallback(() => {
+    if (!editor) return;
+    
     const selection = editor.state.selection;
     const { from, to } = selection;
     const selectedText = editor.state.doc.textBetween(from, to);
@@ -137,9 +140,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       // Apply to current paragraph if no selection
       editor.chain().focus().setMark('textStyle', { fontSize: '18px' }).run();
     }
-  };
+  }, [editor]);
 
-  const decreaseFontSize = () => {
+  const decreaseFontSize = useCallback(() => {
+    if (!editor) return;
+    
     const selection = editor.state.selection;
     const { from, to } = selection;
     const selectedText = editor.state.doc.textBetween(from, to);
@@ -161,9 +166,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       // Apply to current paragraph if no selection
       editor.chain().focus().setFontSize('14px').run();
     }
-  };
+  }, [editor]);
 
-  const setFontSize = (size: string) => {
+  const setFontSize = useCallback((size: string) => {
+    if (!editor) return;
+    
     const selection = editor.state.selection;
     const { from, to } = selection;
     const selectedText = editor.state.doc.textBetween(from, to);
@@ -174,7 +181,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       // Apply to current paragraph if no selection
       editor.chain().focus().setFontSize(`${size}px`).run();
     }
-  };
+  }, [editor]);
+
+  if (!editor) {
+    return null;
+  }
 
   return (
     <div className="border border-border rounded-lg flex flex-col h-full">
@@ -451,6 +462,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default RichTextEditor;
