@@ -119,8 +119,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       const newSize = Math.min(currentSize + 2, 32);
       editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
     } else {
-      // If no selection, we can't easily apply font size to cursor position
-      // This is a limitation of the current implementation
+      // Apply to current paragraph if no selection
+      editor.chain().focus().setMark('textStyle', { fontSize: '18px' }).run();
     }
   };
 
@@ -143,7 +143,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       const newSize = Math.max(currentSize - 2, 12);
       editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
     } else {
-      // If no selection, we can't easily apply font size to cursor position
+      // Apply to current paragraph if no selection
+      editor.chain().focus().setMark('textStyle', { fontSize: '14px' }).run();
     }
   };
 
@@ -155,7 +156,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     if (selectedText) {
       editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
     } else {
-      // If no selection, we can't easily apply font size to cursor position
+      // Apply to current paragraph if no selection
+      editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
     }
   };
 
@@ -423,11 +425,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         </Popover>
       </div>
       
-      {/* Editor Content */}
+      {/* Editor Content - Properly scoped styles */}
       <div className="flex-1 p-4 overflow-auto">
         <EditorContent 
           editor={editor} 
-          className="min-h-[600px] focus:outline-none prose prose-stone dark:prose-invert max-w-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4"
+          className="min-h-[600px] focus:outline-none [&_p]:mb-4 [&_h1]:mb-4 [&_h2]:mb-3 [&_h3]:mb-2 [&_ul]:mb-4 [&_ol]:mb-4 [&_blockquote]:mb-4 [&_*]:text-base [&_p]:text-base [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg"
         />
       </div>
     </div>
