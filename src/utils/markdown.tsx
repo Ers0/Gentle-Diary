@@ -21,18 +21,18 @@ export const remarkFontSize = () => {
 
 // Custom components for react-markdown
 export const markdownComponents = {
-  h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
-  h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold mt-3 mb-2 text-muted-foreground" {...props} />,
-  h3: ({ node, ...props }: any) => <h3 className="text-lg font-semibold mt-3 mb-2" {...props} />,
-  p: ({ node, ...props }: any) => <p className="mb-2" {...props} />,
-  ul: ({ node, ...props }: any) => <ul className="my-2 list-disc pl-5" {...props} />,
-  ol: ({ node, ...props }: any) => <ol className="my-2 list-decimal pl-5" {...props} />,
-  li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
-  blockquote: ({ node, ...props }: any) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2" {...props} />,
-  hr: ({ node, ...props }: any) => <hr className="my-4 border-border" {...props} />,
-  strong: ({ node, ...props }: any) => <strong className="font-bold" {...props} />,
-  em: ({ node, ...props }: any) => <em className="italic" {...props} />,
-  u: ({ node, ...props }: any) => <u className="underline" {...props} />,
+  h1: ({ node, className, ...props }: any) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />,
+  h2: ({ node, className, ...props }: any) => <h2 className="text-xl font-semibold mt-3 mb-2 text-muted-foreground" {...props} />,
+  h3: ({ node, className, ...props }: any) => <h3 className="text-lg font-semibold mt-3 mb-2" {...props} />,
+  p: ({ node, className, ...props }: any) => <p className="mb-2" {...props} />,
+  ul: ({ node, className, ...props }: any) => <ul className="my-2 list-disc pl-5" {...props} />,
+  ol: ({ node, className, ...props }: any) => <ol className="my-2 list-decimal pl-5" {...props} />,
+  li: ({ node, className, ...props }: any) => <li className="mb-1" {...props} />,
+  blockquote: ({ node, className, ...props }: any) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2" {...props} />,
+  hr: ({ node, className, ...props }: any) => <hr className="my-4 border-border" {...props} />,
+  strong: ({ node, className, ...props }: any) => <strong className="font-bold" {...props} />,
+  em: ({ node, className, ...props }: any) => <em className="italic" {...props} />,
+  u: ({ node, className, ...props }: any) => <u className="underline" {...props} />,
   // Handle custom HTML elements - removed className from props to prevent conflicts
-  span: ({ node, ...props }: any) => <span {...props} />,
+  span: ({ node, className, ...props }: any) => <span {...props} />,
 };
