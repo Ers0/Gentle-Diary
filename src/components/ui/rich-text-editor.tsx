@@ -345,7 +345,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       
       {/* Character Count */}
       <div className="px-4 py-2 text-xs text-muted-foreground border-t border-border">
-        {editor.storage.characterCount.characters()} characters
+        {editor.storage.characterCount?.characters() || 0} characters
       </div>
     </div>
   );
