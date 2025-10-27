@@ -30,7 +30,8 @@ import {
   Link as LinkIcon,
   Type,
   Plus,
-  Minus
+  Minus,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -94,7 +95,7 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
       },
     }),
     Placeholder.configure({
-      placeholder: "Start writing your diary entry...",
+      placeholder: "Begin your thoughtful entry...",
     }),
     TextStyle,
     FontSize,
@@ -117,7 +118,7 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
     },
     editorProps: {
       attributes: {
-        class: "focus:outline-none",
+        class: "focus:outline-none prose prose-stone dark:prose-invert max-w-none text-base leading-relaxed",
       },
     },
   });
@@ -219,9 +220,9 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
   }
 
   return (
-    <div className="border border-border rounded-lg flex flex-col h-full">
+    <div className="border border-border rounded-xl flex flex-col h-full bg-white dark:bg-card shadow-sm">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-muted/30">
+      <div className="flex flex-wrap items-center gap-1 p-3 border-b border-border bg-muted/30 rounded-t-xl">
         <Toggle
           size="sm"
           pressed={editor.isActive("heading", { level: 1 })}
@@ -480,10 +481,20 @@ const RichTextEditor = React.memo(({ content, onChange }: RichTextEditorProps) =
             </div>
           </PopoverContent>
         </Popover>
+        
+        <Separator orientation="vertical" className="h-6" />
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="rounded-full p-2 h-8 w-8"
+        >
+          <Sparkles className="h-4 w-4" />
+        </Button>
       </div>
       
       {/* Editor Content - Fixed interaction area */}
-      <div className="flex-1 p-4 overflow-auto">
+      <div className="flex-1 p-6 overflow-auto">
         <div className="min-h-[600px]">
           <EditorContent 
             editor={editor} 
