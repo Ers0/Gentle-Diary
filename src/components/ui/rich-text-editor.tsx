@@ -10,7 +10,6 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Underline } from "@tiptap/extension-underline";
 import { Link } from "@tiptap/extension-link";
-import { Extension } from "@tiptap/core";
 import { 
   Bold, 
   Italic, 
@@ -39,52 +38,6 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 
-// Custom FontSize extension
-const FontSize = Extension.create({
-  name: 'fontSize',
-  addOptions() {
-    return {
-      types: ['textStyle'],
-    };
-  },
-  addGlobalAttributes() {
-    return [
-      {
-        types: ['textStyle'],
-        attributes: {
-          fontSize: {
-            default: null,
-            parseHTML: element => element.style.fontSize.replace('px', ''),
-            renderHTML: attributes => {
-              if (!attributes.fontSize) {
-                return {};
-              }
-              return {
-                style: `font-size: ${attributes.fontSize}px`,
-              };
-            },
-          },
-        },
-      },
-    ];
-  },
-  addCommands() {
-    return {
-      setFontSize: (fontSize: string) => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontSize })
-          .run();
-      },
-      unsetFontSize: () => ({ chain }) => {
-        return chain()
-          .setMark('textStyle', { fontSize: null })
-          .removeEmptyTextStyle()
-          .run();
-      },
-    };
-  },
-});
-
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -107,7 +60,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         placeholder: "Start writing your diary entry...",
       }),
       TextStyle,
-      FontSize,
       Color,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -147,20 +99,64 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     editor.chain().focus().unsetLink().run();
   };
 
+  // Font size handling using inline styles
   const increaseFontSize = () => {
-    const currentSize = editor.getAttributes('textStyle').fontSize || '16';
-    const newSize = Math.min(parseInt(currentSize) + 2, 32);
-    editor.chain().focus().setFontSize(newSize.toString()).run();
+    const selection = editor.state.selection;
+    const { from, to } = selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    
+    if (selectedText) {
+      // Get current font size from the first character of selection
+      const marks = editor.state.doc.resolve(from).marks();
+      let currentSize = 16; // default size
+      
+      marks.forEach(mark => {
+        if (mark.type.name === 'textStyle' && mark.attrs.fontSize) {
+          currentSize = parseInt(mark.attrs.fontSize);
+        }
+      });
+      
+      const newSize = Math.min(currentSize + 2, 32);
+      editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
+    } else {
+      // If no selection, we can't easily apply font size to cursor position
+      // This is a limitation of the current implementation
+    }
   };
 
   const decreaseFontSize = () => {
-    const currentSize = editor.getAttributes('textStyle').fontSize || '16';
-    const newSize = Math.max(parseInt(currentSize) - 2, 12);
-    editor.chain().focus().setFontSize(newSize.toString()).run();
+    const selection = editor.state.selection;
+    const { from, to } = selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    
+    if (selectedText) {
+      // Get current font size from the first character of selection
+      const marks = editor.state.doc.resolve(from).marks();
+      let currentSize = 16; // default size
+      
+      marks.forEach(mark => {
+        if (mark.type.name === 'textStyle' && mark.attrs.fontSize) {
+          currentSize = parseInt(mark.attrs.fontSize);
+        }
+      });
+      
+      const newSize = Math.max(currentSize - 2, 12);
+      editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
+    } else {
+      // If no selection, we can't easily apply font size to cursor position
+    }
   };
 
   const setFontSize = (size: string) => {
-    editor.chain().focus().setFontSize(size).run();
+    const selection = editor.state.selection;
+    const { from, to } = selection;
+    const selectedText = editor.state.doc.textBetween(from, to);
+    
+    if (selectedText) {
+      editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
+    } else {
+      // If no selection, we can't easily apply font size to cursor position
+    }
   };
 
   return (
