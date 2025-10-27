@@ -37,29 +37,65 @@ const BOOK_COLORS = [
 
 // Function to format markdown-like content for display
 const formatContentForDisplay = (content: string) => {
+  if (!content) return "";
+
   // Split content into lines
   const lines = content.split('\n');
   
   // Process lines to convert markdown-like syntax to HTML
-  const processedLines = lines.map((line, index) => {
+  let processedLines: string[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    
     // Handle titles (H1)
     if (line.startsWith('# ') && !line.startsWith('## ')) {
-      return `<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`;
+      processedLines.push(`<h1 class="text-2xl font-bold mt-4 mb-2">${line.substring(2)}</h1>`);
+      continue;
     }
     
     // Handle subtitles (H2)
     if (line.startsWith('## ')) {
-      return `<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`;
+      processedLines.push(`<h2 class="text-xl font-semibold mt-3 mb-2 text-muted-foreground">${line.substring(3)}</h2>`);
+      continue;
     }
     
     // Handle horizontal rule
     if (line === '---') {
-      return `<hr class="my-4 border-border" />`;
+      processedLines.push(`<hr class="my-4 border-border" />`);
+      continue;
     }
     
     // Handle blockquotes
     if (line.startsWith('> ')) {
-      return `<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${line.substring(2)}</blockquote>`;
+      processedLines.push(`<blockquote class="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">${line.substring(2)}</blockquote>`);
+      continue;
+    }
+    
+    // Handle bullet lists
+    if (line.startsWith('- ')) {
+      let listItems = [];
+      // Collect all consecutive list items
+      while (i < lines.length && lines[i].startsWith('- ')) {
+        listItems.push(`<li class="ml-4 list-disc">${lines[i].substring(2)}</li>`);
+        i++;
+      }
+      i--; // Adjust for the extra increment
+      processedLines.push(`<ul class="my-2">${listItems.join('')}</ul>`);
+      continue;
+    }
+    
+    // Handle numbered lists
+    if (/^\d+\.\s/.test(line)) {
+      let listItems = [];
+      // Collect all consecutive list items
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        listItems.push(`<li class="ml-4 list-decimal">${lines[i].replace(/^\d+\.\s/, '')}</li>`);
+        i++;
+      }
+      i--; // Adjust for the extra increment
+      processedLines.push(`<ol class="my-2 list-decimal">${listItems.join('')}</ol>`);
+      continue;
     }
     
     // Handle font sizes
@@ -78,67 +114,16 @@ const formatContentForDisplay = (content: string) => {
     // Handle underline
     processedLine = processedLine.replace(/__(.*?)__/g, '<u class="underline">$1</u>');
     
-    // Handle bullet lists
-    if (line.startsWith('- ')) {
-      return `<li class="ml-4 list-disc">${processedLine.substring(2)}</li>`;
-    }
-    
-    // Handle numbered lists
-    if (/^\d+\./.test(line)) {
-      return `<li class="ml-4 list-decimal">${processedLine.replace(/^\d+\.\s/, '')}</li>`;
-    }
-    
     // Handle paragraphs
     if (processedLine.trim() === '') {
-      return '<br/>';
-    }
-    
-    return `<p class="mb-2">${processedLine}</p>`;
-  });
-  
-  // Group list items
-  let inUnorderedList = false;
-  let inOrderedList = false;
-  const groupedLines = [];
-  
-  for (let i = 0; i < processedLines.length; i++) {
-    const line = processedLines[i];
-    
-    if (line.includes('class="ml-4 list-disc"')) {
-      if (!inUnorderedList) {
-        groupedLines.push('<ul class="my-2">');
-        inUnorderedList = true;
-      }
-      groupedLines.push(line);
-    } else if (line.includes('class="ml-4 list-decimal"')) {
-      if (!inOrderedList) {
-        groupedLines.push('<ol class="my-2 list-decimal">');
-        inOrderedList = true;
-      }
-      groupedLines.push(line);
+      processedLines.push('<br/>');
     } else {
-      if (inUnorderedList) {
-        groupedLines.push('</ul>');
-        inUnorderedList = false;
-      }
-      if (inOrderedList) {
-        groupedLines.push('</ol>');
-        inOrderedList = false;
-      }
-      groupedLines.push(line);
+      processedLines.push(`<p class="mb-2">${processedLine}</p>`);
     }
-  }
-  
-  // Close any open lists
-  if (inUnorderedList) {
-    groupedLines.push('</ul>');
-  }
-  if (inOrderedList) {
-    groupedLines.push('</ol>');
   }
   
   // Join processed lines
-  return groupedLines.join('');
+  return processedLines.join('');
 };
 
 const Diary = () => {
