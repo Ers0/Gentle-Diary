@@ -55,6 +55,21 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
           levels: [1, 2, 3],
         },
         codeBlock: false,
+        listItem: {
+          HTMLAttributes: {
+            class: 'mb-1',
+          },
+        },
+        bulletList: {
+          HTMLAttributes: {
+            class: 'mb-4 pl-6 list-disc',
+          },
+        },
+        orderedList: {
+          HTMLAttributes: {
+            class: 'mb-4 pl-6 list-decimal',
+          },
+        },
       }),
       Placeholder.configure({
         placeholder: "Start writing your diary entry...",
@@ -144,7 +159,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       editor.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
     } else {
       // Apply to current paragraph if no selection
-      editor.chain().focus().setMark('textStyle', { fontSize: '14px' }).run();
+      editor.chain().focus().setFontSize('14px').run();
     }
   };
 
@@ -157,7 +172,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
     } else {
       // Apply to current paragraph if no selection
-      editor.chain().focus().setMark('textStyle', { fontSize: `${size}px` }).run();
+      editor.chain().focus().setFontSize(`${size}px`).run();
     }
   };
 
