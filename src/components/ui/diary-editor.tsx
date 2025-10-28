@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -12,12 +12,17 @@ import {
   AlignRight,
   Heading1,
   Heading2,
+  Heading3,
   List,
   ListOrdered,
   Quote,
   Undo,
-  Redo
+  Redo,
+  Palette,
+  Type,
+  Minus
 } from "lucide-react";
+import { ColorPicker } from "./color-picker";
 import { useToast } from "@/hooks/use-toast";
 
 interface DiaryEditorProps {
@@ -34,7 +39,14 @@ interface DiaryEditorProps {
 
 export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry.content);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [fontSize, setFontSize] = useState("normal");
+  const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setContent(entry.content);
+  }, [entry.content]);
 
   const handleSave = () => {
     onSave({
@@ -49,52 +61,100 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
-  const insertFormatting = (format: string) => {
-    const textarea = document.getElementById('diary-content') as HTMLTextAreaElement;
-    if (!textarea) return;
-    
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    
-    let formattedText = '';
+  const executeCommand = (command: string, value: string = '') => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  const insertHTML = (html: string) => {
+    document.execCommand('insertHTML', false, html);
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  const formatText = (format: string) => {
     switch (format) {
       case 'bold':
-        formattedText = `**${selectedText}**`;
+        executeCommand('bold');
         break;
       case 'italic':
-        formattedText = `*${selectedText}*`;
+        executeCommand('italic');
+        break;
+      case 'underline':
+        executeCommand('underline');
         break;
       case 'heading1':
-        formattedText = `# ${selectedText}`;
+        executeCommand('formatBlock', '<h1>');
         break;
       case 'heading2':
-        formattedText = `## ${selectedText}`;
+        executeCommand('formatBlock', '<h2>');
+        break;
+      case 'heading3':
+        executeCommand('formatBlock', '<h3>');
         break;
       case 'bulletList':
-        formattedText = `- ${selectedText}`;
+        executeCommand('insertUnorderedList');
         break;
       case 'numberedList':
-        formattedText = `1. ${selectedText}`;
+        executeCommand('insertOrderedList');
         break;
-      case 'quote':
-        formattedText = `> ${selectedText}`;
+      case 'blockquote':
+        executeCommand('formatBlock', '<blockquote>');
         break;
-      default:
-        formattedText = selectedText;
+      case 'alignLeft':
+        executeCommand('justifyLeft');
+        break;
+      case 'alignCenter':
+        executeCommand('justifyCenter');
+        break;
+      case 'alignRight':
+        executeCommand('justifyRight');
+        break;
+      case 'horizontalRule':
+        insertHTML('<hr />');
+        break;
+      case 'fontSize':
+        // Custom font size implementation
+        const selection = window.getSelection();
+        if (selection && selection.toString()) {
+          const range = selection.getRangeAt(0);
+          const selectedText = selection.toString();
+          
+          let sizeClass = '';
+          switch (fontSize) {
+            case 'small': sizeClass = 'text-xs'; break;
+            case 'normal': sizeClass = 'text-sm'; break;
+            case 'large': sizeClass = 'text-lg'; break;
+            case 'xlarge': sizeClass = 'text-xl'; break;
+            default: sizeClass = 'text-sm';
+          }
+          
+          const span = document.createElement('span');
+          span.className = sizeClass;
+          span.textContent = selectedText;
+          
+          range.deleteContents();
+          range.insertNode(span);
+          
+          if (editorRef.current) {
+            setContent(editorRef.current.innerHTML);
+          }
+        }
+        break;
     }
-    
-    const newContent = content.substring(0, start) + formattedText + content.substring(end);
-    setContent(newContent);
-    
-    // Focus back to textarea and set cursor position
-    setTimeout(() => {
-      if (textarea) {
-        const newCursorPos = start + formattedText.length;
-        textarea.focus();
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
+  };
+
+  const handleColorSelect = (color: string) => {
+    executeCommand('foreColor', color);
+    setIsColorPickerOpen(false);
+  };
+
+  const handleFontSizeChange = (size: string) => {
+    setFontSize(size);
+    formatText('fontSize');
   };
 
   return (
@@ -108,7 +168,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('heading1')}
+                onClick={() => formatText('heading1')}
                 title="Heading 1"
               >
                 <Heading1 className="h-4 w-4" />
@@ -117,10 +177,19 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('heading2')}
+                onClick={() => formatText('heading2')}
                 title="Heading 2"
               >
                 <Heading2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('heading3')}
+                title="Heading 3"
+              >
+                <Heading3 className="h-4 w-4" />
               </Button>
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
@@ -129,7 +198,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('bold')}
+                onClick={() => formatText('bold')}
                 title="Bold"
               >
                 <Bold className="h-4 w-4" />
@@ -138,10 +207,19 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('italic')}
+                onClick={() => formatText('italic')}
                 title="Italic"
               >
                 <Italic className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('underline')}
+                title="Underline"
+              >
+                <UnderlineIcon className="h-4 w-4" />
               </Button>
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
@@ -150,7 +228,37 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('bulletList')}
+                onClick={() => formatText('alignLeft')}
+                title="Align Left"
+              >
+                <AlignLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('alignCenter')}
+                title="Align Center"
+              >
+                <AlignCenter className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('alignRight')}
+                title="Align Right"
+              >
+                <AlignRight className="h-4 w-4" />
+              </Button>
+              
+              <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('bulletList')}
                 title="Bullet List"
               >
                 <List className="h-4 w-4" />
@@ -159,7 +267,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('numberedList')}
+                onClick={() => formatText('numberedList')}
                 title="Numbered List"
               >
                 <ListOrdered className="h-4 w-4" />
@@ -171,11 +279,87 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => insertFormatting('quote')}
+                onClick={() => formatText('blockquote')}
                 title="Quote"
               >
                 <Quote className="h-4 w-4" />
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('horizontalRule')}
+                title="Divider"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              
+              <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
+              
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                  title="Text Color"
+                >
+                  <Palette className="h-4 w-4" />
+                </Button>
+                {isColorPickerOpen && (
+                  <div className="absolute top-full left-0 mt-1 z-10">
+                    <ColorPicker
+                      onColorSelect={handleColorSelect}
+                      onClose={() => setIsColorPickerOpen(false)}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
+              
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => handleFontSizeChange('small')}
+                  title="Small Text"
+                >
+                  <Type className="h-4 w-4" />
+                  <span className="text-xs ml-1">S</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => handleFontSizeChange('normal')}
+                  title="Normal Text"
+                >
+                  <Type className="h-4 w-4" />
+                  <span className="text-sm ml-1">N</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => handleFontSizeChange('large')}
+                  title="Large Text"
+                >
+                  <Type className="h-4 w-4" />
+                  <span className="text-lg ml-1">L</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => handleFontSizeChange('xlarge')}
+                  title="Extra Large Text"
+                >
+                  <Type className="h-4 w-4" />
+                  <span className="text-xl ml-1">XL</span>
+                </Button>
+              </div>
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
               
@@ -183,12 +367,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => {
-                  const textarea = document.getElementById('diary-content') as HTMLTextAreaElement;
-                  if (textarea) {
-                    textarea.focus();
-                  }
-                }}
+                onClick={() => executeCommand('undo')}
                 title="Undo"
               >
                 <Undo className="h-4 w-4" />
@@ -197,12 +376,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onClick={() => {
-                  const textarea = document.getElementById('diary-content') as HTMLTextAreaElement;
-                  if (textarea) {
-                    textarea.focus();
-                  }
-                }}
+                onClick={() => executeCommand('redo')}
                 title="Redo"
               >
                 <Redo className="h-4 w-4" />
@@ -212,12 +386,12 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
           
           {/* Editor Content */}
           <div className="p-6">
-            <textarea
-              id="diary-content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none font-mono text-sm"
-              placeholder="Begin your gentle reflection..."
+            <div
+              ref={editorRef}
+              contentEditable
+              className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5"
+              onInput={(e) => setContent(e.currentTarget.innerHTML)}
+              dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
           
