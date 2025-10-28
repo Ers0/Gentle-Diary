@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -20,10 +20,6 @@ import {
   AlignLeft, 
   AlignCenter, 
   AlignRight,
-  Link as LinkIcon,
-  Type,
-  Hash,
-  Pilcrow,
   Heading1,
   Heading2,
   Heading3,
