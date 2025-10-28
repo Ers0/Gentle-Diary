@@ -62,14 +62,24 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   };
 
   const executeCommand = (command: string, value: string = '') => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    
     document.execCommand(command, false, value);
+    
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
   };
 
   const insertHTML = (html: string) => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    
     document.execCommand('insertHTML', false, html);
+    
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
