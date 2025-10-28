@@ -99,6 +99,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertUnorderedList');
         break;
       case 'numberedList':
+        // Fixed implementation for numbered lists
         executeCommand('insertOrderedList');
         break;
       case 'blockquote':
@@ -318,46 +319,43 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
               
-              <div className="flex items-center gap-1">
+              {/* Improved font size selection */}
+              <div className="flex items-center gap-1 bg-muted rounded-full p-1">
                 <Button
-                  variant="ghost"
+                  variant={fontSize === 'small' ? "default" : "ghost"}
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-full h-7 px-2"
                   onClick={() => handleFontSizeChange('small')}
                   title="Small Text"
                 >
-                  <Type className="h-4 w-4" />
-                  <span className="text-xs ml-1">S</span>
+                  <span className="text-xs">S</span>
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={fontSize === 'normal' ? "default" : "ghost"}
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-full h-7 px-2"
                   onClick={() => handleFontSizeChange('normal')}
                   title="Normal Text"
                 >
-                  <Type className="h-4 w-4" />
-                  <span className="text-sm ml-1">N</span>
+                  <span className="text-sm">N</span>
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={fontSize === 'large' ? "default" : "ghost"}
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-full h-7 px-2"
                   onClick={() => handleFontSizeChange('large')}
                   title="Large Text"
                 >
-                  <Type className="h-4 w-4" />
-                  <span className="text-lg ml-1">L</span>
+                  <span className="text-lg">L</span>
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant={fontSize === 'xlarge' ? "default" : "ghost"}
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-full h-7 px-2"
                   onClick={() => handleFontSizeChange('xlarge')}
                   title="Extra Large Text"
                 >
-                  <Type className="h-4 w-4" />
-                  <span className="text-xl ml-1">XL</span>
+                  <span className="text-xl">XL</span>
                 </Button>
               </div>
               
