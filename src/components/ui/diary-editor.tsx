@@ -60,10 +60,65 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
+  // Function to save cursor position
+  const saveCursorPosition = () => {
+    if (!editorRef.current) return null;
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(editorRef.current);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    
+    return {
+      offset: preCaretRange.toString().length,
+      bookmark: range
+    };
+  };
+
+  // Function to restore cursor position
+  const restoreCursorPosition = (position: { offset: number } | null) => {
+    if (!position || !editorRef.current) return;
+    
+    const charIndex = position.offset;
+    const nodeStack = [editorRef.current];
+    let node: Node | undefined;
+    let foundStart = false;
+    let charCount = 0;
+    
+    while (!foundStart && nodeStack.length > 0) {
+      node = nodeStack.pop();
+      
+      if (node?.nodeType === Node.TEXT_NODE) {
+        const nextCharCount = charCount + (node.textContent?.length || 0);
+        if (!foundStart && charIndex >= charCount && charIndex <= nextCharCount) {
+          const range = document.createRange();
+          range.setStart(node, charIndex - charCount);
+          range.collapse(true);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          foundStart = true;
+        }
+        charCount = nextCharCount;
+      } else {
+        let i = node?.childNodes.length || 0;
+        while (i--) {
+          nodeStack.push(node!.childNodes[i]);
+        }
+      }
+    }
+  };
+
   const executeCommand = (command: string, value: string = '') => {
     if (editorRef.current) {
       editorRef.current.focus();
     }
+    
+    // Save cursor position before executing command
+    const cursorPosition = saveCursorPosition();
     
     document.execCommand(command, false, value);
     
@@ -79,9 +134,13 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       });
     }
     
-    if (editorRef.current) {
-      setContent(editorRef.current.innerHTML);
-    }
+    // Restore cursor position after executing command
+    setTimeout(() => {
+      restoreCursorPosition(cursorPosition);
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    }, 0);
   };
 
   const insertHTML = (html: string) => {
@@ -89,11 +148,18 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       editorRef.current.focus();
     }
     
+    // Save cursor position before inserting HTML
+    const cursorPosition = saveCursorPosition();
+    
     document.execCommand('insertHTML', false, html);
     
-    if (editorRef.current) {
-      setContent(editorRef.current.innerHTML);
-    }
+    // Restore cursor position after inserting HTML
+    setTimeout(() => {
+      restoreCursorPosition(cursorPosition);
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    }, 0);
   };
 
   const formatText = (format: string) => {
@@ -177,6 +243,12 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   const handleFontSizeChange = (size: string) => {
     setFontSize(size);
     formatText('fontSize');
+  };
+
+  const handleInput = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
   };
 
   return (
@@ -409,7 +481,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               ref={editorRef}
               contentEditable
               className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5"
-              onInput={(e) => setContent(e.currentTarget.innerHTML)}
+              onInput={handleInput}
               dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
