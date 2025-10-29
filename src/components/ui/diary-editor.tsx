@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -49,15 +49,22 @@ interface DiaryEditorProps {
 const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
   const { theme } = useTheme();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [autoSubtitle, setAutoSubtitle] = useState(() => {
-    const saved = localStorage.getItem("autoSubtitle");
-    return saved ? JSON.parse(saved) : false;
-  });
-  
-  const [subtitleLines, setSubtitleLines] = useState(() => {
-    const saved = localStorage.getItem("subtitleLines");
-    return saved ? parseInt(saved) : 3;
-  });
+  const [autoSubtitle, setAutoSubtitle] = useState(false);
+  const [subtitleLines, setSubtitleLines] = useState(3);
+
+  // Load auto subtitle settings
+  useEffect(() => {
+    const savedAutoSubtitle = localStorage.getItem("autoSubtitle");
+    const savedSubtitleLines = localStorage.getItem("subtitleLines");
+    
+    if (savedAutoSubtitle) {
+      setAutoSubtitle(JSON.parse(savedAutoSubtitle));
+    }
+    
+    if (savedSubtitleLines) {
+      setSubtitleLines(parseInt(savedSubtitleLines));
+    }
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -82,25 +89,42 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
       CharacterCount,
     ],
     content: entry.content,
-    onUpdate: ({ editor }) => {
-      // Auto subtitle functionality
-      if (autoSubtitle) {
-        const content = editor.getText();
-        const lines = content.split('\n');
+  });
+
+  // Handle auto subtitle functionality
+  useEffect(() => {
+    if (!editor || !autoSubtitle) return;
+
+    let lastLineCount = 0;
+
+    const handleUpdate = () => {
+      const content = editor.getText();
+      const lines = content.split('\n');
+      const currentLineCount = lines.length;
+
+      // Check if we've crossed a threshold for adding a subtitle
+      if (currentLineCount > lastLineCount && 
+          currentLineCount > subtitleLines && 
+          currentLineCount % subtitleLines === 0) {
+        const lastLine = lines[lines.length - 1].trim();
         
-        // Check if we should add a subtitle
-        if (lines.length > 0 && lines.length % subtitleLines === 0) {
-          const lastLine = lines[lines.length - 1];
-          
-          // Only add subtitle if the last line isn't already a heading
-          if (!lastLine.startsWith('## ') && lastLine.trim() !== '') {
-            // Add a subtitle (H2) before the current line
-            editor.commands.insertContentAt(0, `## Subtitle\n\n`);
-          }
+        // Only add subtitle if the last line isn't empty and not already a heading
+        if (lastLine && !lastLine.startsWith('## ')) {
+          // We'll add a visual indicator instead of automatically inserting
+          // to avoid disrupting the user's writing flow
+          console.log("Auto subtitle threshold reached");
         }
       }
-    },
-  });
+
+      lastLineCount = currentLineCount;
+    };
+
+    editor.on('update', handleUpdate);
+
+    return () => {
+      editor.off('update', handleUpdate);
+    };
+  }, [editor, autoSubtitle, subtitleLines]);
 
   const handleSave = () => {
     if (editor) {
@@ -113,15 +137,6 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
       });
     }
   };
-
-  // Save settings to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem("autoSubtitle", JSON.stringify(autoSubtitle));
-  }, [autoSubtitle]);
-  
-  useEffect(() => {
-    localStorage.setItem("subtitleLines", subtitleLines.toString());
-  }, [subtitleLines]);
 
   if (!editor) {
     return null;
