@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -10,8 +10,6 @@ import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
-import TextStyle from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
 import CharacterCount from "@tiptap/extension-character-count";
 import { 
   Bold, 
@@ -23,14 +21,12 @@ import {
   AlignRight, 
   AlignJustify,
   Palette,
-  Link as LinkIcon,
   Type,
   Hash,
   Calendar,
   Save
 } from "lucide-react";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { useTheme } from "@/components/theme-provider";
 import { format } from "date-fns";
 
 interface DiaryEditorProps {
@@ -46,16 +42,11 @@ interface DiaryEditorProps {
 }
 
 const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
-  const { theme } = useTheme();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
-      }),
+      StarterKit,
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
       }),
@@ -67,8 +58,6 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
         types: ["heading", "paragraph"],
       }),
       Highlight,
-      TextStyle,
-      Color,
       CharacterCount,
     ],
     content: entry.content,
