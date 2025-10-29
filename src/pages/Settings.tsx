@@ -12,7 +12,7 @@ import { Heart, Bell, User, Trash2, Type, Palette, Moon, Sun } from "lucide-reac
 
 const Settings = () => {
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, darkMode, setDarkMode } = useTheme();
   
   // Load settings from localStorage
   const [autoSubtitle, setAutoSubtitle] = useState(() => {
@@ -24,11 +24,6 @@ const Settings = () => {
     const saved = localStorage.getItem("subtitleLines");
     return saved ? parseInt(saved) : 3;
   });
-  
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    return saved ? JSON.parse(saved) : false;
-  });
 
   // Save settings to localStorage
   useEffect(() => {
@@ -38,12 +33,6 @@ const Settings = () => {
   useEffect(() => {
     localStorage.setItem("subtitleLines", subtitleLines.toString());
   }, [subtitleLines]);
-  
-  useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-    // Refresh the page to apply dark mode changes
-    window.location.reload();
-  }, [darkMode]);
 
   const handleSave = () => {
     toast({

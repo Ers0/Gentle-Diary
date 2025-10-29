@@ -13,11 +13,15 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  darkMode: boolean;
+  setDarkMode: (darkMode: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "main",
   setTheme: () => null,
+  darkMode: false,
+  setDarkMode: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -345,6 +349,11 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
+  
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -360,29 +369,29 @@ export function ThemeProvider({
     // Add theme class
     root.classList.add(`theme-${theme}`);
     
-    // Check for dark mode preference
-    const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const storedDarkMode = localStorage.getItem("darkMode");
-    const useDarkMode = storedDarkMode ? JSON.parse(storedDarkMode) : isDarkMode;
-    
-    if (useDarkMode) {
+    if (darkMode) {
       root.classList.add("dark");
     }
 
     // Apply theme variables
     const selectedTheme = themes[theme] || themes.main;
-    const themeVariables = useDarkMode ? selectedTheme.dark : selectedTheme.light;
+    const themeVariables = darkMode ? selectedTheme.dark : selectedTheme.light;
     
     Object.entries(themeVariables).forEach(([key, value]) => {
       root.style.setProperty(key, value as string);
     });
-  }, [theme]);
+  }, [theme, darkMode]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
+    },
+    darkMode,
+    setDarkMode: (darkMode: boolean) => {
+      localStorage.setItem("darkMode", JSON.stringify(darkMode));
+      setDarkMode(darkMode);
     },
   };
 
