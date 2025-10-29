@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
-import { Heart, Bell, User, Trash2, Type } from "lucide-react";
+import { Heart, Bell, User, Trash2, Type, Palette } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -41,6 +41,15 @@ const Settings = () => {
     });
   };
 
+  // Define cozy themes
+  const themes = [
+    { id: "main", name: "Warm Sunset", colors: ["bg-amber-500", "bg-orange-500", "bg-rose-300"] },
+    { id: "sunset", name: "Cozy Sunset", colors: ["bg-orange-400", "bg-amber-300", "bg-yellow-200"] },
+    { id: "ocean", name: "Ocean Breeze", colors: ["bg-blue-500", "bg-cyan-400", "bg-teal-300"] },
+    { id: "forest", name: "Forest Green", colors: ["bg-green-700", "bg-emerald-500", "bg-lime-300"] },
+    { id: "lavender", name: "Lavender Dream", colors: ["bg-purple-500", "bg-violet-400", "bg-fuchsia-300"] },
+  ];
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-3xl mx-auto">
@@ -56,23 +65,39 @@ const Settings = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
                 <div className="bg-primary/15 p-1.5 rounded-full">
-                  <Heart className="h-4 w-4 text-primary" />
+                  <Palette className="h-4 w-4 text-primary" />
                 </div>
                 Appearance
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Dark Mode</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Toggle between light and dark themes
-                  </p>
+              <div>
+                <h3 className="font-medium mb-3">Theme</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {themes.map((t) => (
+                    <div
+                      key={t.id}
+                      className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                        theme === t.id
+                          ? "ring-2 ring-primary border-primary"
+                          : "border-border/50 hover:border-primary/30"
+                      }`}
+                      onClick={() => setTheme(t.id as any)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{t.name}</span>
+                        <div className="flex gap-1">
+                          {t.colors.map((color, idx) => (
+                            <div
+                              key={idx}
+                              className={`w-4 h-4 rounded-full ${color}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <Switch 
-                  checked={theme === "dark"} 
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} 
-                />
               </div>
             </CardContent>
           </Card>
