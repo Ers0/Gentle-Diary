@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   Bold, 
   Italic, 
-  Underline as UnderlineIcon, 
+  Underline, 
   AlignLeft, 
   AlignCenter, 
   AlignRight,
@@ -19,7 +19,6 @@ import {
   Undo,
   Redo,
   Palette,
-  Type,
   Minus
 } from "lucide-react";
 import { ColorPicker } from "./color-picker";
@@ -67,6 +66,18 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
     
     document.execCommand(command, false, value);
+    
+    // Fix for numbered lists - force proper formatting
+    if (command === 'insertOrderedList' && editorRef.current) {
+      // Get all ol elements and ensure they have proper styling
+      const orderedLists = editorRef.current.querySelectorAll('ol');
+      orderedLists.forEach(ol => {
+        ol.style.listStyleType = 'decimal';
+        ol.style.paddingLeft = '1.25rem';
+        ol.style.marginTop = '0.5rem';
+        ol.style.marginBottom = '0.5rem';
+      });
+    }
     
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
@@ -230,7 +241,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 onClick={() => formatText('underline')}
                 title="Underline"
               >
-                <UnderlineIcon className="h-4 w-4" />
+                <Underline className="h-4 w-4" />
               </Button>
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
@@ -335,7 +346,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant={fontSize === 'small' ? "default" : "ghost"}
                   size="sm"
                   className="rounded-full h-7 px-2"
-                  onClick={() => handleFontSizeChange('small')}
+                  onClick={() => setFontSize('small')}
                   title="Small Text"
                 >
                   <span className="text-xs">S</span>
@@ -344,7 +355,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant={fontSize === 'normal' ? "default" : "ghost"}
                   size="sm"
                   className="rounded-full h-7 px-2"
-                  onClick={() => handleFontSizeChange('normal')}
+                  onClick={() => setFontSize('normal')}
                   title="Normal Text"
                 >
                   <span className="text-sm">N</span>
@@ -353,7 +364,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant={fontSize === 'large' ? "default" : "ghost"}
                   size="sm"
                   className="rounded-full h-7 px-2"
-                  onClick={() => handleFontSizeChange('large')}
+                  onClick={() => setFontSize('large')}
                   title="Large Text"
                 >
                   <span className="text-lg">L</span>
@@ -362,7 +373,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant={fontSize === 'xlarge' ? "default" : "ghost"}
                   size="sm"
                   className="rounded-full h-7 px-2"
-                  onClick={() => handleFontSizeChange('xlarge')}
+                  onClick={() => setFontSize('xlarge')}
                   title="Extra Large Text"
                 >
                   <span className="text-xl">XL</span>
