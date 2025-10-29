@@ -22,13 +22,12 @@ import {
   AlignCenter, 
   AlignRight, 
   AlignJustify,
-  Highlight as HighlightIcon,
+  Palette,
   Link as LinkIcon,
   Type,
   Hash,
   Calendar,
-  Save,
-  Palette
+  Save
 } from "lucide-react";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { useTheme } from "@/components/theme-provider";
@@ -49,22 +48,6 @@ interface DiaryEditorProps {
 const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
   const { theme } = useTheme();
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [autoSubtitle, setAutoSubtitle] = useState(false);
-  const [subtitleLines, setSubtitleLines] = useState(3);
-
-  // Load auto subtitle settings
-  useEffect(() => {
-    const savedAutoSubtitle = localStorage.getItem("autoSubtitle");
-    const savedSubtitleLines = localStorage.getItem("subtitleLines");
-    
-    if (savedAutoSubtitle) {
-      setAutoSubtitle(JSON.parse(savedAutoSubtitle));
-    }
-    
-    if (savedSubtitleLines) {
-      setSubtitleLines(parseInt(savedSubtitleLines));
-    }
-  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -90,41 +73,6 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
     ],
     content: entry.content,
   });
-
-  // Handle auto subtitle functionality
-  useEffect(() => {
-    if (!editor || !autoSubtitle) return;
-
-    let lastLineCount = 0;
-
-    const handleUpdate = () => {
-      const content = editor.getText();
-      const lines = content.split('\n');
-      const currentLineCount = lines.length;
-
-      // Check if we've crossed a threshold for adding a subtitle
-      if (currentLineCount > lastLineCount && 
-          currentLineCount > subtitleLines && 
-          currentLineCount % subtitleLines === 0) {
-        const lastLine = lines[lines.length - 1].trim();
-        
-        // Only add subtitle if the last line isn't empty and not already a heading
-        if (lastLine && !lastLine.startsWith('## ')) {
-          // We'll add a visual indicator instead of automatically inserting
-          // to avoid disrupting the user's writing flow
-          console.log("Auto subtitle threshold reached");
-        }
-      }
-
-      lastLineCount = currentLineCount;
-    };
-
-    editor.on('update', handleUpdate);
-
-    return () => {
-      editor.off('update', handleUpdate);
-    };
-  }, [editor, autoSubtitle, subtitleLines]);
 
   const handleSave = () => {
     if (editor) {
@@ -254,7 +202,7 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
               onClick={() => editor.chain().focus().toggleHighlight().run()}
               aria-label="Highlight"
             >
-              <HighlightIcon className="h-4 w-4" />
+              <Palette className="h-4 w-4" />
             </Button>
             
             <Button
