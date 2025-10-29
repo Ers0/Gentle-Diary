@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
-import { Heart, Bell, User, Trash2, Type, Palette } from "lucide-react";
+import { Heart, Bell, User, Trash2, Type, Palette, Moon, Sun } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -24,6 +24,11 @@ const Settings = () => {
     const saved = localStorage.getItem("subtitleLines");
     return saved ? parseInt(saved) : 3;
   });
+  
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved ? JSON.parse(saved) : false;
+  });
 
   // Save settings to localStorage
   useEffect(() => {
@@ -33,6 +38,15 @@ const Settings = () => {
   useEffect(() => {
     localStorage.setItem("subtitleLines", subtitleLines.toString());
   }, [subtitleLines]);
+  
+  useEffect(() => {
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   const handleSave = () => {
     toast({
@@ -71,6 +85,19 @@ const Settings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Dark Mode</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enable dark mode for comfortable night writing
+                  </p>
+                </div>
+                <Switch 
+                  checked={darkMode} 
+                  onCheckedChange={setDarkMode} 
+                />
+              </div>
+              
               <div>
                 <h3 className="font-medium mb-3">Theme</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

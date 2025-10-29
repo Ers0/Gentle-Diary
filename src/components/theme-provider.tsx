@@ -22,7 +22,7 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-// Define cozy color palettes
+// Define cozy color palettes with dark mode support
 const themes = {
   main: {
     name: "Warm Sunset",
