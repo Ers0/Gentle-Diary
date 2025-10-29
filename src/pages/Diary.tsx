@@ -65,13 +65,13 @@ const Diary = () => {
       {
         id: "1",
         date: new Date(),
-        content: "# My First Entry\n\n## A beautiful day\n\nToday was a great day! I accomplished so much and felt really productive.\n\n- Finished my project\n- Went for a walk\n- Read a good book\n\n> This was truly an amazing day!",
+        content: "<h1>My First Entry</h1><h2>A beautiful day</h2><p>Today was a great day! I accomplished so much and felt really productive.</p><ul><li>Finished my project</li><li>Went for a walk</li><li>Read a good book</li></ul><blockquote>This was truly an amazing day!</blockquote>",
         mood: 1
       },
       {
         id: "2",
         date: new Date(Date.now() - 86400000),
-        content: "# Reflection\n\n## Feeling overwhelmed\n\nFeeling a bit overwhelmed with work today. Need to take some time for myself.\n\n1. Prioritize tasks\n2. Take breaks\n3. Ask for help\n\n---\n\nI should remember to be kinder to myself.",
+        content: "<h1>Reflection</h1><h2>Feeling overwhelmed</h2><p>Feeling a bit overwhelmed with work today. Need to take some time for myself.</p><ol><li>Prioritize tasks</li><li>Take breaks</li><li>Ask for help</li><hr><p>I should remember to be kinder to myself.</p>",
         mood: 4
       }
     ];
@@ -354,14 +354,7 @@ const Diary = () => {
                           </span>
                         </div>
                         <div className="mt-2 text-muted-foreground text-sm line-clamp-3">
-                          <div className="prose prose-stone dark:prose-invert max-w-none">
-                            <ReactMarkdown 
-                              remarkPlugins={[remarkGfm, remarkFontSize]} 
-                              components={markdownComponents}
-                            >
-                              {entry.content}
-                            </ReactMarkdown>
-                          </div>
+                          <div className="prose prose-stone dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: entry.content }} />
                         </div>
                         {entry.mood && (
                           <div className="mt-2 flex items-center">

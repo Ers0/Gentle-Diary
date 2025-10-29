@@ -10,6 +10,8 @@ import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import CharacterCount from "@tiptap/extension-character-count";
 import { 
   Bold, 
@@ -46,7 +48,11 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
       Placeholder.configure({
         placeholder: "Start writing your thoughts...",
       }),
@@ -58,6 +64,8 @@ const DiaryEditor = ({ entry, onSave, currentBookId }: DiaryEditorProps) => {
         types: ["heading", "paragraph"],
       }),
       Highlight,
+      TextStyle,
+      Color,
       CharacterCount,
     ],
     content: entry.content,
