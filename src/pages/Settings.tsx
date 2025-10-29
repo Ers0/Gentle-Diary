@@ -41,11 +41,8 @@ const Settings = () => {
   
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    // Refresh the page to apply dark mode changes
+    window.location.reload();
   }, [darkMode]);
 
   const handleSave = () => {
