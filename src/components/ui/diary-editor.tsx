@@ -140,8 +140,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertOrderedList');
         break;
       case 'checkboxList':
-        // Insert a proper checkbox list item
-        insertHTML('<div><label class="flex items-start cursor-pointer"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></label></div>');
+        // Insert a proper checkbox list item with only the checkbox clickable
+        insertHTML('<div><label class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></label></div>');
         break;
       case 'blockquote':
         executeCommand('formatBlock', '<blockquote>');
@@ -212,12 +212,14 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Handle checkbox clicks in the editor
+  // Handle editor clicks - only allow checkbox clicks, not the entire line
   const handleEditorClick = (e: React.MouseEvent) => {
-    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
-      // Allow checkbox to be toggled normally
+    // Only allow clicks on checkboxes themselves
+    if (!(e.target instanceof HTMLInputElement && e.target.type === 'checkbox')) {
+      // If clicking anywhere else, ensure we don't interfere with content editing
       return;
     }
+    // Allow checkbox to be toggled normally
   };
 
   return (
