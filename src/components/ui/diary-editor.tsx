@@ -36,7 +36,7 @@ interface DiaryEditorProps {
   currentBookId?: string;
 }
 
-export function DiaryEditorBackup({ entry, onSave, currentBookId }: DiaryEditorProps) {
+export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry.content);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [fontSize, setFontSize] = useState("normal");
