@@ -79,10 +79,22 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
 
   const insertHTML = (html: string) => {
     if (editorRef.current) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        while (div.firstChild) {
+          frag.appendChild(div.firstChild);
+        }
+        range.insertNode(frag);
+      } else {
+        editorRef.current.innerHTML += html;
+      }
       editorRef.current.focus();
     }
-    
-    document.execCommand('insertHTML', false, html);
     
     // Update content state
     if (editorRef.current) {
@@ -142,9 +154,9 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         }
         break;
       case 'fontSizeNormal':
-        document.execCommand('fontSize', false, '2');
+        document.execCommand('fontSize', false, '3');
         if (editorRef.current) {
-          const normalElements = editorRef.current.querySelectorAll('font[size="2"]');
+          const normalElements = editorRef.current.querySelectorAll('font[size="3"]');
           normalElements.forEach((el: any) => {
             el.removeAttribute('size');
             el.classList.add('text-sm');
@@ -152,9 +164,9 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         }
         break;
       case 'fontSizeLarge':
-        document.execCommand('fontSize', false, '4');
+        document.execCommand('fontSize', false, '5');
         if (editorRef.current) {
-          const largeElements = editorRef.current.querySelectorAll('font[size="4"]');
+          const largeElements = editorRef.current.querySelectorAll('font[size="5"]');
           largeElements.forEach((el: any) => {
             el.removeAttribute('size');
             el.classList.add('text-lg');
@@ -162,9 +174,9 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         }
         break;
       case 'fontSizeXLarge':
-        document.execCommand('fontSize', false, '6');
+        document.execCommand('fontSize', false, '7');
         if (editorRef.current) {
-          const xLargeElements = editorRef.current.querySelectorAll('font[size="6"]');
+          const xLargeElements = editorRef.current.querySelectorAll('font[size="7"]');
           xLargeElements.forEach((el: any) => {
             el.removeAttribute('size');
             el.classList.add('text-xl');
