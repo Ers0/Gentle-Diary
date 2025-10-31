@@ -15,6 +15,7 @@ import {
   Heading3,
   List,
   ListOrdered,
+  ListChecks,
   Quote,
   Undo,
   Redo,
@@ -127,6 +128,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         break;
       case 'numberedList':
         executeCommand('insertOrderedList');
+        break;
+      case 'checkboxList':
+        // Insert a checkbox list item
+        insertHTML('<div><input type="checkbox" disabled> Item</div>');
         break;
       case 'blockquote':
         executeCommand('formatBlock', '<blockquote>');
@@ -312,6 +317,15 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               >
                 <ListOrdered className="h-4 w-4" />
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={() => formatText('checkboxList')}
+                title="Checkbox List"
+              >
+                <ListChecks className="h-4 w-4" />
+              </Button>
               
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
               
@@ -444,7 +458,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
             <div
               ref={editorRef}
               contentEditable
-              className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 [&_ul]:list-disc [&_ul_li]:list-disc [&_ol]:list-decimal [&_ol_li]:list-decimal"
+              className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5 [&_ul]:list-disc [&_ul_li]:list-disc [&_ol]:list-decimal [&_ol_li]:list-decimal [&_input[type='checkbox']]:mr-2 [&_input[type='checkbox']]:mt-1"
               onInput={handleInput}
             />
           </div>
