@@ -19,7 +19,8 @@ import {
   Undo,
   Redo,
   Palette,
-  Minus
+  Minus,
+  Type
 } from "lucide-react";
 import { ColorPicker } from "./color-picker";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +40,6 @@ interface DiaryEditorProps {
 export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) {
   const [content, setContent] = useState(entry.content);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
-  const [fontSize, setFontSize] = useState("normal");
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -69,18 +69,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
     
     document.execCommand(command, false, value);
-    
-    // Fix for numbered lists - force proper formatting
-    if (command === 'insertOrderedList' && editorRef.current) {
-      // Get all ol elements and ensure they have proper styling
-      const orderedLists = editorRef.current.querySelectorAll('ol');
-      orderedLists.forEach(ol => {
-        ol.style.listStyleType = 'decimal';
-        ol.style.paddingLeft = '1.25rem';
-        ol.style.marginTop = '0.5rem';
-        ol.style.marginBottom = '0.5rem';
-      });
-    }
     
     // Update content state
     if (editorRef.current) {
@@ -125,7 +113,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertUnorderedList');
         break;
       case 'numberedList':
-        // Fixed implementation for numbered lists
         executeCommand('insertOrderedList');
         break;
       case 'blockquote':
@@ -143,32 +130,44 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       case 'horizontalRule':
         insertHTML('<hr />');
         break;
-      case 'fontSize':
-        // Custom font size implementation
-        const selection = window.getSelection();
-        if (selection && selection.toString()) {
-          const range = selection.getRangeAt(0);
-          const selectedText = selection.toString();
-          
-          let sizeClass = '';
-          switch (fontSize) {
-            case 'small': sizeClass = 'text-xs'; break;
-            case 'normal': sizeClass = 'text-sm'; break;
-            case 'large': sizeClass = 'text-lg'; break;
-            case 'xlarge': sizeClass = 'text-xl'; break;
-            default: sizeClass = 'text-sm';
-          }
-          
-          const span = document.createElement('span');
-          span.className = sizeClass;
-          span.textContent = selectedText;
-          
-          range.deleteContents();
-          range.insertNode(span);
-          
-          if (editorRef.current) {
-            setContent(editorRef.current.innerHTML);
-          }
+      case 'fontSizeSmall':
+        document.execCommand('fontSize', false, '1');
+        if (editorRef.current) {
+          const smallElements = editorRef.current.querySelectorAll('font[size="1"]');
+          smallElements.forEach(el => {
+            el.removeAttribute('size');
+            el.classList.add('text-xs');
+          });
+        }
+        break;
+      case 'fontSizeNormal':
+        document.execCommand('fontSize', false, '3');
+        if (editorRef.current) {
+          const normalElements = editorRef.current.querySelectorAll('font[size="3"]');
+          normalElements.forEach(el => {
+            el.removeAttribute('size');
+            el.classList.add('text-sm');
+          });
+        }
+        break;
+      case 'fontSizeLarge':
+        document.execCommand('fontSize', false, '5');
+        if (editorRef.current) {
+          const largeElements = editorRef.current.querySelectorAll('font[size="5"]');
+          largeElements.forEach(el => {
+            el.removeAttribute('size');
+            el.classList.add('text-lg');
+          });
+        }
+        break;
+      case 'fontSizeXLarge':
+        document.execCommand('fontSize', false, '7');
+        if (editorRef.current) {
+          const xLargeElements = editorRef.current.querySelectorAll('font[size="7"]');
+          xLargeElements.forEach(el => {
+            el.removeAttribute('size');
+            el.classList.add('text-xl');
+          });
         }
         break;
     }
@@ -177,11 +176,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   const handleColorSelect = (color: string) => {
     executeCommand('foreColor', color);
     setIsColorPickerOpen(false);
-  };
-
-  const handleFontSizeChange = (size: string) => {
-    setFontSize(size);
-    formatText('fontSize');
   };
 
   const handleInput = () => {
@@ -352,39 +346,39 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               <div className="border-r border-border/50 h-6 my-auto mx-1"></div>
               
               {/* Improved font size selection */}
-              <div className="flex items-center gap-1 bg-muted rounded-full p-1">
+              <div className="flex items-center gap-1">
                 <Button
-                  variant={fontSize === 'small' ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  className="rounded-full h-7 px-2"
-                  onClick={() => setFontSize('small')}
+                  className="rounded-full h-7 px-3"
+                  onClick={() => formatText('fontSizeSmall')}
                   title="Small Text"
                 >
                   <span className="text-xs">S</span>
                 </Button>
                 <Button
-                  variant={fontSize === 'normal' ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  className="rounded-full h-7 px-2"
-                  onClick={() => setFontSize('normal')}
+                  className="rounded-full h-7 px-3"
+                  onClick={() => formatText('fontSizeNormal')}
                   title="Normal Text"
                 >
                   <span className="text-sm">N</span>
                 </Button>
                 <Button
-                  variant={fontSize === 'large' ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  className="rounded-full h-7 px-2"
-                  onClick={() => setFontSize('large')}
+                  className="rounded-full h-7 px-3"
+                  onClick={() => formatText('fontSizeLarge')}
                   title="Large Text"
                 >
                   <span className="text-lg">L</span>
                 </Button>
                 <Button
-                  variant={fontSize === 'xlarge' ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  className="rounded-full h-7 px-2"
-                  onClick={() => setFontSize('xlarge')}
+                  className="rounded-full h-7 px-3"
+                  onClick={() => formatText('fontSizeXLarge')}
                   title="Extra Large Text"
                 >
                   <span className="text-xl">XL</span>
