@@ -140,8 +140,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertOrderedList');
         break;
       case 'checkboxList':
-        // Insert a proper checkbox list item with only the checkbox clickable
-        insertHTML('<div><label class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></label></div>');
+        // Insert a proper checkbox list item without using labels
+        insertHTML('<div class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></div>');
         break;
       case 'blockquote':
         executeCommand('formatBlock', '<blockquote>');
@@ -212,14 +212,22 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Handle editor clicks - only allow checkbox clicks, not the entire line
+  // Handle editor clicks - prevent line clicks from affecting checkboxes
   const handleEditorClick = (e: React.MouseEvent) => {
-    // Only allow clicks on checkboxes themselves
-    if (!(e.target instanceof HTMLInputElement && e.target.type === 'checkbox')) {
-      // If clicking anywhere else, ensure we don't interfere with content editing
+    // If clicking directly on a checkbox, allow default behavior
+    if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
       return;
     }
-    // Allow checkbox to be toggled normally
+    
+    // If clicking on the text part of a checkbox item, prevent any checkbox interaction
+    const parent = (e.target as HTMLElement).closest('div.flex.items-start');
+    if (parent) {
+      const checkbox = parent.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        // Prevent any checkbox interaction when clicking on the text
+        e.preventDefault();
+      }
+    }
   };
 
   return (
