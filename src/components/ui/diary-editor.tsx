@@ -141,7 +141,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         break;
       case 'checkboxList':
         // Insert a proper checkbox list item without using labels
-        insertHTML('<div class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></div>');
+        insertHTML('<div class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span class="flex-1" contenteditable="true">Item</span></div><div><br></div>');
         break;
       case 'blockquote':
         executeCommand('formatBlock', '<blockquote>');
