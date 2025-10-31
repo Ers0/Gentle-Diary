@@ -1,15 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette } from "lucide-react";
 import { format } from "date-fns";
-import { remarkFontSize, markdownComponents } from "@/utils/markdown.tsx";
 
 interface DiaryEntry {
   id: string;
