@@ -282,18 +282,37 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     } 
     // If text is selected, wrap in heading
     else {
-      // Extract selected content
-      const selectedContent = range.extractContents();
+      // Store the selection range before manipulation
+      const bookmark = {
+        start: range.startContainer,
+        startOffset: range.startOffset,
+        end: range.endContainer,
+        endOffset: range.endOffset
+      };
+      
+      // Get the selected content
+      const selectedContent = range.cloneContents();
+      
+      // Delete the selected content
+      range.deleteContents();
       
       // Create heading element
       const headingTag = `H${level}`;
       const heading = document.createElement(headingTag);
-      heading.appendChild(selectedContent);
+      
+      // If selected content has only one text node, use it directly
+      if (selectedContent.childNodes.length === 1 && 
+          selectedContent.firstChild?.nodeType === Node.TEXT_NODE) {
+        heading.textContent = selectedContent.textContent;
+      } else {
+        // Otherwise, append the cloned content
+        heading.appendChild(selectedContent);
+      }
       
       // Insert heading
       range.insertNode(heading);
       
-      // Select the new heading
+      // Move cursor to the end of the new heading
       const newRange = document.createRange();
       newRange.selectNodeContents(heading);
       newRange.collapse(false); // Move to end
