@@ -22,7 +22,7 @@ import {
   Palette,
   Minus,
   Type
-} from "lucide-react";
+} from "lencide-react";
 import { ColorPicker } from "./color-picker";
 import { useToast } from "@/hooks/use-toast";
 
@@ -217,27 +217,31 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         if (range.collapsed) {
           // Find the current paragraph or block element
           let container = range.startContainer;
-          while (container && container.nodeType !== Node.ELEMENT_NODE) {
+          
+          // Navigate up to the nearest block element
+          while (container && container !== editorRef.current && container.nodeType !== Node.ELEMENT_NODE) {
             container = container.parentNode;
+          }
+          
+          // If container is the editor itself, create a new paragraph
+          if (container === editorRef.current) {
+            const paragraph = document.createElement('p');
+            paragraph.innerHTML = '<br>';
+            range.insertNode(paragraph);
+            container = paragraph;
           }
           
           // If we're already in a heading of the same type, convert back to paragraph
           if (container && container.nodeName.toLowerCase() === headingTag) {
             const parent = container.parentNode;
             const paragraph = document.createElement('p');
-            paragraph.innerHTML = container.innerHTML;
+            paragraph.innerHTML = container.innerHTML || '<br>';
             parent?.replaceChild(paragraph, container);
           } 
-          // Otherwise, convert the paragraph to the heading
-          else if (container && container.nodeName.toLowerCase() === 'p') {
-            const heading = document.createElement(headingTag);
-            heading.innerHTML = container.innerHTML;
-            container.parentNode?.replaceChild(heading, container);
-          }
-          // If we're in another block element, wrap content in heading
+          // Otherwise, convert the paragraph/block to the heading
           else if (container) {
             const heading = document.createElement(headingTag);
-            heading.innerHTML = container.innerHTML;
+            heading.innerHTML = container.innerHTML || '<br>';
             container.parentNode?.replaceChild(heading, container);
           }
         } 
