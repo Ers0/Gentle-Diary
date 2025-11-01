@@ -213,9 +213,9 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         
-        // If no text is selected, apply to the entire line/paragraph
+        // If no text is selected, apply to the current line
         if (range.collapsed) {
-          // Find the current paragraph or block element
+          // Get the current block element (paragraph, heading, etc.)
           let container = range.startContainer;
           
           // Navigate up to the nearest block element
@@ -223,22 +223,31 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
             container = container.parentNode;
           }
           
-          // If container is the editor itself, create a new paragraph
+          // If we're at the editor root, create a new paragraph
           if (container === editorRef.current) {
             const paragraph = document.createElement('p');
             paragraph.innerHTML = '<br>';
             range.insertNode(paragraph);
+            range.selectNode(paragraph);
+            range.collapse(false);
             container = paragraph;
           }
           
-          // If we're already in a heading of the same type, convert back to paragraph
+          // If we're already in the same heading type, convert back to paragraph
           if (container && container.nodeName.toLowerCase() === headingTag) {
-            const parent = container.parentNode;
             const paragraph = document.createElement('p');
             paragraph.innerHTML = container.innerHTML || '<br>';
-            parent?.replaceChild(paragraph, container);
+            container.parentNode?.replaceChild(paragraph, container);
           } 
-          // Otherwise, convert the paragraph/block to the heading
+          // If we're in a different heading, convert to the new heading type
+          else if (container && (container.nodeName.toLowerCase() === 'h1' || 
+                                container.nodeName.toLowerCase() === 'h2' || 
+                                container.nodeName.toLowerCase() === 'h3')) {
+            const heading = document.createElement(headingTag);
+            heading.innerHTML = container.innerHTML || '<br>';
+            container.parentNode?.replaceChild(heading, container);
+          }
+          // If we're in a paragraph or other block element, convert to heading
           else if (container) {
             const heading = document.createElement(headingTag);
             heading.innerHTML = container.innerHTML || '<br>';
@@ -247,15 +256,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         } 
         // If text is selected, wrap it in the heading
         else {
-          // Extract selected content
-          const selectedContent = range.extractContents();
-          
-          // Create heading element
-          const heading = document.createElement(headingTag);
-          heading.appendChild(selectedContent);
-          
-          // Insert heading
-          range.insertNode(heading);
+          // Use document.execCommand for selected text
+          document.execCommand('formatBlock', false, `<${headingTag}>`);
         }
         
         editorRef.current.focus();
