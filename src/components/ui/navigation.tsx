@@ -1,69 +1,85 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  BookOpen, 
-  Smile, 
-  Calendar, 
-  Settings,
-  Sparkles
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Heart, BookOpen, Smile, Settings, LogIn, LogOut } from "lucide-react";
 
 const Navigation = () => {
   const location = useLocation();
-  
-  const navItems = [
-    { path: "/", label: "Home", icon: Sparkles },
-    { path: "/diary", label: "Diary", icon: BookOpen },
-    { path: "/mood", label: "Mood", icon: Smile },
-    { path: "/settings", label: "Settings", icon: Settings },
-  ];
+  const { user, signOut } = useAuth();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+    <nav className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex h-14 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-1.5 rounded-lg">
-                <BookOpen className="h-5 w-5 text-white" />
+              <div className="bg-primary/15 p-1.5 rounded-full">
+                <Heart className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                GentleDiary
-              </span>
+              <span className="font-semibold">Your Gentle Diary</span>
             </Link>
-          </div>
-          
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              return (
-                <Button
-                  key={item.path}
-                  variant={isActive ? "default" : "ghost"}
-                  className={cn(
-                    "rounded-full px-4 py-2 h-auto font-medium transition-all duration-300",
-                    isActive 
-                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:shadow-lg" 
-                      : "text-foreground hover:text-primary"
-                  )}
-                  asChild
+            
+            <div className="hidden md:flex items-center space-x-1">
+              <Link to="/diary">
+                <Button 
+                  variant={isActive("/diary") ? "secondary" : "ghost"} 
+                  size="sm"
+                  className="rounded-full"
                 >
-                  <Link to={item.path}>
-                    <Icon className="h-4 w-4 mr-2" />
-                    {item.label}
-                  </Link>
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Diary
                 </Button>
-              );
-            })}
+              </Link>
+              
+              <Link to="/mood">
+                <Button 
+                  variant={isActive("/mood") ? "secondary" : "ghost"} 
+                  size="sm"
+                  className="rounded-full"
+                >
+                  <Smile className="h-4 w-4 mr-2" />
+                  Mood
+                </Button>
+              </Link>
+            </div>
           </div>
           
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center">
-              <span className="text-xs font-bold text-white">U</span>
-            </div>
+            <Link to="/settings">
+              <Button 
+                variant={isActive("/settings") ? "secondary" : "ghost"} 
+                size="sm"
+                className="rounded-full"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="sr-only">Settings</span>
+              </Button>
+            </Link>
+            
+            {user ? (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="rounded-full"
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            ) : (
+              <Link to="/login">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="rounded-full"
+                >
+                  <LogIn className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Login</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

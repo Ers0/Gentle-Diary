@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { DiaryEditor } from "@/components/ui/diary-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { DiaryService, DiaryEntry } from "@/services/diaryService";
+import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette, Cloud, Database } from "lucide-react";
 import { format } from "date-fns";
-
-interface DiaryEntry {
-  id: string;
-  date: Date;
-  content: string;
-  mood?: number | null;
-  bookId?: string;
-}
+import { useToast } from "@/hooks/use-toast";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Book {
   id: string;
@@ -43,37 +39,11 @@ const BOOK_COLORS = [
 ];
 
 const Diary = () => {
-  const [entries, setEntries] = useState<DiaryEntry[]>(() => {
-    const savedEntries = localStorage.getItem("diaryEntries");
-    if (savedEntries) {
-      try {
-        const parsedEntries = JSON.parse(savedEntries);
-        // Convert date strings back to Date objects
-        return parsedEntries.map((entry: any) => ({
-          ...entry,
-          date: new Date(entry.date)
-        }));
-      } catch (e) {
-        console.error("Failed to parse saved entries", e);
-        return [];
-      }
-    }
-    return [
-      {
-        id: "1",
-        date: new Date(),
-        content: "<h1>My First Entry</h1><h2>A beautiful day</h2><p>Today was a great day! I accomplished so much and felt really productive.</p><ul><li>Finished my project</li><li>Went for a walk</li><li>Read a good book</li></ul><blockquote>This was truly an amazing day!</blockquote>",
-        mood: 1
-      },
-      {
-        id: "2",
-        date: new Date(Date.now() - 86400000),
-        content: "<h1>Reflection</h1><h2>Feeling overwhelmed</h2><p>Feeling a bit overwhelmed with work today. Need to take some time for myself.</p><ol><li>Prioritize tasks</li><li>Take breaks</li><li>Ask for help</li><hr><p>I should remember to be kinder to myself.</p>",
-        mood: 4
-      }
-    ];
-  });
-
+  const { user, loading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [books, setBooks] = useState<Book[]>(() => {
     const savedBooks = localStorage.getItem("diaryBooks");
     if (savedBooks) {
@@ -98,26 +68,79 @@ const Diary = () => {
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [newBookName, setNewBookName] = useState("");
   const [selectedColor, setSelectedColor] = useState(BOOK_COLORS[0].value);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Save entries to localStorage whenever they change
-  React.useEffect(() => {
-    localStorage.setItem("diaryEntries", JSON.stringify(entries));
-  }, [entries]);
+  // Load entries based on auth status
+  useEffect(() => {
+    if (loading) return;
+    
+    const loadEntries = async () => {
+      if (user) {
+        // Load from cloud
+        try {
+          const cloudEntries = await DiaryService.getCloudEntries();
+          setEntries(cloudEntries);
+        } catch (error) {
+          console.error("Failed to load cloud entries:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load your diary entries. Showing local entries instead.",
+            variant: "destructive"
+          });
+          setEntries(DiaryService.getLocalEntries());
+        }
+      } else {
+        // Load from local storage
+        setEntries(DiaryService.getLocalEntries());
+      }
+    };
+    
+    loadEntries();
+  }, [user, loading, toast]);
 
   // Save books to localStorage whenever they change
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem("diaryBooks", JSON.stringify(books));
   }, [books]);
 
-  const handleSaveEntry = (entry: DiaryEntry) => {
-    if (entries.some(e => e.id === entry.id)) {
-      // Update existing entry
-      setEntries(entries.map(e => e.id === entry.id ? entry : e));
-    } else {
-      // Add new entry
-      setEntries([entry, ...entries]);
+  const handleSaveEntry = async (entry: DiaryEntry) => {
+    try {
+      if (user) {
+        // Save to cloud
+        const savedEntry = await DiaryService.saveCloudEntry(entry);
+        if (entries.some(e => e.id === entry.id)) {
+          // Update existing entry
+          setEntries(entries.map(e => e.id === entry.id ? savedEntry : e));
+        } else {
+          // Add new entry
+          setEntries([savedEntry, ...entries]);
+        }
+        setCurrentEntry(savedEntry);
+      } else {
+        // Save locally
+        const savedEntry = DiaryService.saveLocalEntry(entry);
+        if (entries.some(e => e.id === entry.id)) {
+          // Update existing entry
+          setEntries(entries.map(e => e.id === entry.id ? savedEntry : e));
+        } else {
+          // Add new entry
+          setEntries([savedEntry, ...entries]);
+        }
+        setCurrentEntry(savedEntry);
+      }
+      
+      toast({
+        title: "Entry saved",
+        description: user ? "Your entry has been saved to the cloud." : "Your entry has been saved locally."
+      });
+    } catch (error) {
+      console.error("Failed to save entry:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your entry. Please try again.",
+        variant: "destructive"
+      });
     }
-    setCurrentEntry(entry);
   };
 
   const handleNewEntry = () => {
@@ -166,6 +189,47 @@ const Diary = () => {
     ...book,
     entryCount: entries.filter(entry => entry.bookId === book.id).length
   }));
+
+  const handleSyncToCloud = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    
+    setIsSyncing(true);
+    try {
+      const success = await DiaryService.syncLocalToCloud();
+      if (success) {
+        toast({
+          title: "Sync successful",
+          description: "Your local entries have been synced to the cloud."
+        });
+        // Reload entries from cloud
+        const cloudEntries = await DiaryService.getCloudEntries();
+        setEntries(cloudEntries);
+      }
+    } catch (error) {
+      console.error("Sync failed:", error);
+      toast({
+        title: "Sync failed",
+        description: "Failed to sync your entries. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your diary...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -285,7 +349,23 @@ const Diary = () => {
         <div className="flex-1 overflow-y-auto">
           <Sidebar entries={filteredEntries} onViewEntry={handleViewEntry} />
         </div>
-        <div className="p-4 border-t border-border/50">
+        <div className="p-4 border-t border-border/50 space-y-2">
+          {!user ? (
+            <Button 
+              className="w-full rounded-full" 
+              variant="outline"
+              onClick={handleSyncToCloud}
+              disabled={isSyncing}
+            >
+              <Cloud className="mr-2 h-4 w-4" />
+              {isSyncing ? "Syncing..." : "Login & Sync"}
+            </Button>
+          ) : (
+            <div className="flex items-center text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted/50">
+              <Cloud className="mr-1 h-3 w-3" />
+              <span>Saved to cloud</span>
+            </div>
+          )}
           <Button className="w-full rounded-full bg-primary hover:bg-primary/90" onClick={handleNewEntry}>
             <Plus className="mr-2 h-4 w-4" />
             New Entry
@@ -332,6 +412,23 @@ const Diary = () => {
                   <Plus className="mr-2 h-4 w-4" />
                   Write an Entry
                 </Button>
+                
+                {!user && (
+                  <div className="mt-8 p-4 bg-muted/50 rounded-lg border border-border/50">
+                    <div className="flex items-center justify-center mb-2">
+                      <Database className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="text-sm font-medium">Local Storage</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Your entries are saved locally on this device. 
+                      <Link to="/login" className="text-primary hover:underline ml-1">Login</Link> to sync to the cloud.
+                    </p>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <div className={`w-2 h-2 rounded-full mr-2 ${entries.length > 0 ? 'bg-green-500' : 'bg-muted-foreground'}`}></div>
+                      <span>{entries.length} entries saved locally</span>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {entries.length > 0 && (
