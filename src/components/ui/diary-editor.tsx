@@ -205,7 +205,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Better heading handling
+  // Better heading handling that preserves editor structure
   const applyHeading = (headingTag: 'h1' | 'h2' | 'h3') => {
     if (editorRef.current) {
       const selection = window.getSelection();
@@ -229,6 +229,12 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
             parent?.replaceChild(paragraph, container);
           } 
           // Otherwise, convert the paragraph to the heading
+          else if (container && container.nodeName.toLowerCase() === 'p') {
+            const heading = document.createElement(headingTag);
+            heading.innerHTML = container.innerHTML;
+            container.parentNode?.replaceChild(heading, container);
+          }
+          // If we're in another block element, wrap content in heading
           else if (container) {
             const heading = document.createElement(headingTag);
             heading.innerHTML = container.innerHTML;
