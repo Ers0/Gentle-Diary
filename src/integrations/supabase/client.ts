@@ -15,6 +15,7 @@ if (supabaseUrl && supabaseAnonKey) {
   }
 } else {
   console.warn('Supabase credentials not found. Cloud features will be disabled.')
+  console.info('To enable cloud features, create a .env.local file with your Supabase credentials.')
   supabase = null
 }
 
