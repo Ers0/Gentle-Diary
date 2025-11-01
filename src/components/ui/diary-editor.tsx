@@ -42,7 +42,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   const [content, setContent] = useState(entry.content);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [isFontSizeMenuOpen, setIsFontSizeMenuOpen] = useState(false);
-  const [savedSelection, setSavedSelection] = useState<Range | null>(null);
+  const [savedRange, setSavedRange] = useState<Range | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -66,29 +66,28 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
-  // Add helpers for saving/restoring selection
   const saveSelection = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      setSavedSelection(selection.getRangeAt(0));
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      setSavedRange(sel.getRangeAt(0));
     }
   };
 
   const restoreSelection = () => {
-    const selection = window.getSelection();
-    if (savedSelection && selection) {
-      selection.removeAllRanges();
-      selection.addRange(savedSelection);
+    const sel = window.getSelection();
+    if (sel && savedRange) {
+      sel.removeAllRanges();
+      sel.addRange(savedRange);
     }
   };
 
   const executeCommand = (command: string, value: string = "") => {
-    if (editorRef.current) {
-      restoreSelection();
-      editorRef.current.focus();
-      (document as any).execCommand(command, false, value);
-      setContent(editorRef.current.innerHTML);
-    }
+    if (!editorRef.current) return;
+
+    restoreSelection();
+    editorRef.current.focus();
+    (document as any).execCommand(command, false, value);
+    setContent(editorRef.current.innerHTML);
   };
 
   const insertHTML = (html: string) => {
@@ -218,22 +217,30 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Fixed toggleHeading with proper selection handling
-  const toggleHeading = (level: 1 | 2 | 3) => {
+  // Improved heading functionality
+  const applyHeading = (level: 1 | 2 | 3) => {
     if (!editorRef.current) return;
 
-    restoreSelection(); // restore before command
+    restoreSelection(); // restores user selection
     editorRef.current.focus();
 
-    const tag = `h${level}`;
-    // execCommand is deprecated but works well for contentEditable
-    (document as any).execCommand("formatBlock", false, tag);
+    // ⚠️ Important: use h1, h2, h3 (not <h1> tags) inside execCommand
+    (document as any).execCommand("formatBlock", false, `h${level}`);
 
     setContent(editorRef.current.innerHTML);
   };
 
   const formatText = (format: string) => {
     switch (format) {
+      case 'heading1':
+        applyHeading(1);
+        break;
+      case 'heading2':
+        applyHeading(2);
+        break;
+      case 'heading3':
+        applyHeading(3);
+        break;
       case 'bold':
         executeCommand('bold');
         break;
@@ -243,15 +250,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       case 'underline':
         executeCommand('underline');
         break;
-      case 'heading1':
-        toggleHeading(1);
-        break;
-      case 'heading2':
-        toggleHeading(2);
-        break;
-      case 'heading3':
-        toggleHeading(3);
-        break;
       case 'bulletList':
         executeCommand('insertUnorderedList');
         break;
@@ -259,7 +257,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertOrderedList');
         break;
       case 'checkboxList':
-        // Insert just the checkbox with proper cursor positioning
         insertCheckbox();
         break;
       case 'blockquote':
@@ -340,6 +337,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('heading1')}
                 title="Heading 1"
               >
@@ -349,6 +347,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('heading2')}
                 title="Heading 2"
               >
@@ -358,6 +357,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('heading3')}
                 title="Heading 3"
               >
@@ -370,6 +370,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('bold')}
                 title="Bold"
               >
@@ -379,6 +380,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('italic')}
                 title="Italic"
               >
@@ -388,6 +390,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('underline')}
                 title="Underline"
               >
@@ -400,6 +403,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('alignLeft')}
                 title="Align Left"
               >
@@ -409,6 +413,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('alignCenter')}
                 title="Align Center"
               >
@@ -418,6 +423,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('alignRight')}
                 title="Align Right"
               >
@@ -430,6 +436,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('bulletList')}
                 title="Bullet List"
               >
@@ -439,6 +446,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('numberedList')}
                 title="Numbered List"
               >
@@ -448,6 +456,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('checkboxList')}
                 title="Checkbox List"
               >
@@ -460,6 +469,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('blockquote')}
                 title="Quote"
               >
@@ -469,6 +479,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => formatText('horizontalRule')}
                 title="Divider"
               >
@@ -482,6 +493,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant="ghost"
                   size="sm"
                   className="rounded-full"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
                   title="Text Color"
                 >
@@ -505,6 +517,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant="outline"
                   size="sm"
                   className="rounded-full h-7 px-3 flex items-center gap-1"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsFontSizeMenuOpen(!isFontSizeMenuOpen)}
                   title="Font Size"
                 >
@@ -516,6 +529,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-xs py-2 px-3"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         formatText('fontSizeSmall');
                         setIsFontSizeMenuOpen(false);
@@ -526,6 +540,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-sm py-2 px-3"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         formatText('fontSizeNormal');
                         setIsFontSizeMenuOpen(false);
@@ -536,6 +551,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-lg py-2 px-3"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         formatText('fontSizeLarge');
                         setIsFontSizeMenuOpen(false);
@@ -546,6 +562,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-xl py-2 px-3"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         formatText('fontSizeXLarge');
                         setIsFontSizeMenuOpen(false);
@@ -563,6 +580,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => executeCommand('undo')}
                 title="Undo"
               >
@@ -572,6 +590,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => executeCommand('redo')}
                 title="Redo"
               >
@@ -585,6 +604,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
             <div
               ref={editorRef}
               contentEditable
+              suppressContentEditableWarning
               className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc [&_ul]:list-disc [&_ul_li]:list-disc [&_ul_li]:pl-2 prose-ol:list-decimal [&_ol]:list-decimal [&_ol_li]:list-decimal [&_ol_li]:pl-2 prose-li:my-1 [&_ul]:pl-4 [&_ol]:pl-4"
               onInput={handleInput}
               onClick={handleEditorClick}
