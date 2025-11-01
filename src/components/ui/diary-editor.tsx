@@ -42,6 +42,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   const [content, setContent] = useState(entry.content);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [isFontSizeMenuOpen, setIsFontSizeMenuOpen] = useState(false);
+  const [savedSelection, setSavedSelection] = useState<Range | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -65,15 +66,27 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     });
   };
 
-  const executeCommand = (command: string, value: string = '') => {
-    if (editorRef.current) {
-      editorRef.current.focus();
+  // Add helpers for saving/restoring selection
+  const saveSelection = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      setSavedSelection(selection.getRangeAt(0));
     }
-    
-    document.execCommand(command, false, value);
-    
-    // Update content state
+  };
+
+  const restoreSelection = () => {
+    const selection = window.getSelection();
+    if (savedSelection && selection) {
+      selection.removeAllRanges();
+      selection.addRange(savedSelection);
+    }
+  };
+
+  const executeCommand = (command: string, value: string = "") => {
     if (editorRef.current) {
+      restoreSelection();
+      editorRef.current.focus();
+      (document as any).execCommand(command, false, value);
       setContent(editorRef.current.innerHTML);
     }
   };
@@ -205,15 +218,16 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Simplified heading toggle using execCommand
+  // Fixed toggleHeading with proper selection handling
   const toggleHeading = (level: 1 | 2 | 3) => {
     if (!editorRef.current) return;
 
+    restoreSelection(); // restore before command
     editorRef.current.focus();
 
     const tag = `h${level}`;
-    // TypeScript-safe use of execCommand
-    document.execCommand("formatBlock", false, tag);
+    // execCommand is deprecated but works well for contentEditable
+    (document as any).execCommand("formatBlock", false, tag);
 
     setContent(editorRef.current.innerHTML);
   };
@@ -575,6 +589,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               onInput={handleInput}
               onClick={handleEditorClick}
               onBlur={handleBlur}
+              onMouseUp={saveSelection}
+              onKeyUp={saveSelection}
             />
           </div>
           
