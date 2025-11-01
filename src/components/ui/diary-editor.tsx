@@ -119,30 +119,23 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         
-        // Create a new paragraph for the checkbox
-        const p = document.createElement('p');
-        p.className = 'flex items-start';
-        
+        // Create the checkbox input
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.className = 'mt-1 mr-2 cursor-pointer';
+        checkbox.className = 'mr-2 align-middle';
         
-        const textSpan = document.createElement('span');
-        textSpan.contentEditable = 'true';
-        textSpan.textContent = ' '; // Add a space for proper cursor positioning
+        // Create a text node for spacing
+        const space = document.createTextNode(' ');
         
-        p.appendChild(checkbox);
-        p.appendChild(textSpan);
+        // Insert both elements
+        range.insertNode(checkbox);
+        range.collapse(false); // Move to end of inserted content
+        range.insertNode(space);
+        range.collapse(false); // Move to end of space
         
-        // Insert the paragraph
-        range.insertNode(p);
-        
-        // Place cursor at the end of the text span (after the space)
-        const newRange = document.createRange();
-        newRange.setStart(textSpan, 1); // Position after the space
-        newRange.collapse(true);
+        // Clear any existing selections and set the new one
         selection.removeAllRanges();
-        selection.addRange(newRange);
+        selection.addRange(range);
         
         editorRef.current.focus();
       }
