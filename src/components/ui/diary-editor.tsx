@@ -118,11 +118,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        range.deleteContents();
         
-        // Create the checkbox structure
-        const container = document.createElement('div');
-        container.className = 'flex items-start';
+        // Create a new paragraph for the checkbox
+        const p = document.createElement('p');
+        p.className = 'flex items-start';
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -130,18 +129,18 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         
         const textSpan = document.createElement('span');
         textSpan.contentEditable = 'true';
-        textSpan.className = 'flex-1';
+        textSpan.textContent = ' '; // Add a space for proper cursor positioning
         
-        container.appendChild(checkbox);
-        container.appendChild(textSpan);
+        p.appendChild(checkbox);
+        p.appendChild(textSpan);
         
-        // Insert the container
-        range.insertNode(container);
+        // Insert the paragraph
+        range.insertNode(p);
         
-        // Place cursor inside the text span
+        // Place cursor at the end of the text span (after the space)
         const newRange = document.createRange();
-        newRange.selectNodeContents(textSpan);
-        newRange.collapse(true); // Place cursor at the beginning of the span
+        newRange.setStart(textSpan, 1); // Position after the space
+        newRange.collapse(true);
         selection.removeAllRanges();
         selection.addRange(newRange);
         
