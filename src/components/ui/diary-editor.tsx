@@ -147,6 +147,64 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
+  // Better font size handling that removes existing font tags
+  const applyFontSize = (sizeClass: string) => {
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // If no text is selected, apply to the entire line
+        if (range.collapsed) {
+          // Get the current line (paragraph or other block element)
+          let container = range.startContainer;
+          while (container && container.nodeType !== Node.ELEMENT_NODE) {
+            container = container.parentNode;
+          }
+          
+          // Apply font size to the container
+          if (container) {
+            const span = document.createElement('span');
+            span.className = sizeClass;
+            range.selectNodeContents(container);
+            range.surroundContents(span);
+          }
+        } else {
+          // Remove any existing font tags in the selection
+          const selectedContent = range.extractContents();
+          const tempDiv = document.createElement('div');
+          tempDiv.appendChild(selectedContent);
+          
+          // Remove font tags
+          const fontTags = tempDiv.querySelectorAll('font');
+          fontTags.forEach(fontTag => {
+            const parent = fontTag.parentNode;
+            while (fontTag.firstChild) {
+              parent?.insertBefore(fontTag.firstChild, fontTag);
+            }
+            parent?.removeChild(fontTag);
+          });
+          
+          // Wrap with span with size class
+          const span = document.createElement('span');
+          span.className = sizeClass;
+          span.appendChild(tempDiv);
+          
+          // Insert back into the document
+          range.insertNode(span);
+        }
+        
+        editorRef.current.focus();
+      }
+    }
+    
+    // Update content state
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
   const formatText = (format: string) => {
     switch (format) {
       case 'bold':
@@ -193,44 +251,16 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         insertHTML('<hr />');
         break;
       case 'fontSizeSmall':
-        document.execCommand('fontSize', false, '1');
-        if (editorRef.current) {
-          const smallElements = editorRef.current.querySelectorAll('font[size="1"]');
-          smallElements.forEach((el: any) => {
-            el.removeAttribute('size');
-            el.classList.add('text-xs');
-          });
-        }
+        applyFontSize('text-xs');
         break;
       case 'fontSizeNormal':
-        document.execCommand('fontSize', false, '3');
-        if (editorRef.current) {
-          const normalElements = editorRef.current.querySelectorAll('font[size="3"]');
-          normalElements.forEach((el: any) => {
-            el.removeAttribute('size');
-            el.classList.add('text-sm');
-          });
-        }
+        applyFontSize('text-sm');
         break;
       case 'fontSizeLarge':
-        document.execCommand('fontSize', false, '5');
-        if (editorRef.current) {
-          const largeElements = editorRef.current.querySelectorAll('font[size="5"]');
-          largeElements.forEach((el: any) => {
-            el.removeAttribute('size');
-            el.classList.add('text-lg');
-          });
-        }
+        applyFontSize('text-lg');
         break;
       case 'fontSizeXLarge':
-        document.execCommand('fontSize', false, '7');
-        if (editorRef.current) {
-          const xLargeElements = editorRef.current.querySelectorAll('font[size="7"]');
-          xLargeElements.forEach((el: any) => {
-            el.removeAttribute('size');
-            el.classList.add('text-xl');
-          });
-        }
+        applyFontSize('text-xl');
         break;
     }
   };
