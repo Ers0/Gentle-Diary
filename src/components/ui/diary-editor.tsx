@@ -87,7 +87,13 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     restoreSelection();
     editorRef.current.focus();
     (document as any).execCommand(command, false, value);
-    setContent(editorRef.current.innerHTML);
+    
+    // Force update content state
+    setTimeout(() => {
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    }, 0);
   };
 
   const insertHTML = (html: string) => {
@@ -217,20 +223,39 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Improved heading functionality
+  // Improved heading functionality with debugging
   const applyHeading = (level: 1 | 2 | 3) => {
     if (!editorRef.current) return;
 
+    console.log("Applying heading level:", level);
     restoreSelection(); // restores user selection
     editorRef.current.focus();
+    
+    // Debug: log current selection
+    const sel = window.getSelection();
+    console.log("Current selection:", sel?.toString());
+    console.log("Saved range:", savedRange);
 
     // ⚠️ Important: use h1, h2, h3 (not <h1> tags) inside execCommand
-    (document as any).execCommand("formatBlock", false, `h${level}`);
-
-    setContent(editorRef.current.innerHTML);
+    try {
+      const result = (document as any).execCommand("formatBlock", false, `<h${level}>`);
+      console.log("execCommand result:", result);
+    } catch (error) {
+      console.error("execCommand failed:", error);
+    }
+    
+    // Force update content state with timeout to ensure DOM is updated
+    setTimeout(() => {
+      if (editorRef.current) {
+        const newContent = editorRef.current.innerHTML;
+        console.log("New content:", newContent);
+        setContent(newContent);
+      }
+    }, 0);
   };
 
   const formatText = (format: string) => {
+    console.log("Formatting text:", format);
     switch (format) {
       case 'heading1':
         applyHeading(1);
@@ -337,8 +362,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('heading1')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('heading1');
+                }}
                 title="Heading 1"
               >
                 <Heading1 className="h-4 w-4" />
@@ -347,8 +374,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('heading2')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('heading2');
+                }}
                 title="Heading 2"
               >
                 <Heading2 className="h-4 w-4" />
@@ -357,8 +386,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('heading3')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('heading3');
+                }}
                 title="Heading 3"
               >
                 <Heading3 className="h-4 w-4" />
@@ -370,8 +401,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('bold')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('bold');
+                }}
                 title="Bold"
               >
                 <Bold className="h-4 w-4" />
@@ -380,8 +413,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('italic')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('italic');
+                }}
                 title="Italic"
               >
                 <Italic className="h-4 w-4" />
@@ -390,8 +425,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('underline')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('underline');
+                }}
                 title="Underline"
               >
                 <Underline className="h-4 w-4" />
@@ -403,8 +440,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('alignLeft')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('alignLeft');
+                }}
                 title="Align Left"
               >
                 <AlignLeft className="h-4 w-4" />
@@ -413,8 +452,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('alignCenter')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('alignCenter');
+                }}
                 title="Align Center"
               >
                 <AlignCenter className="h-4 w-4" />
@@ -423,8 +464,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('alignRight')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('alignRight');
+                }}
                 title="Align Right"
               >
                 <AlignRight className="h-4 w-4" />
@@ -436,8 +479,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('bulletList')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('bulletList');
+                }}
                 title="Bullet List"
               >
                 <List className="h-4 w-4" />
@@ -446,8 +491,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('numberedList')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('numberedList');
+                }}
                 title="Numbered List"
               >
                 <ListOrdered className="h-4 w-4" />
@@ -456,8 +503,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('checkboxList')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('checkboxList');
+                }}
                 title="Checkbox List"
               >
                 <ListChecks className="h-4 w-4" />
@@ -469,8 +518,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('blockquote')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('blockquote');
+                }}
                 title="Quote"
               >
                 <Quote className="h-4 w-4" />
@@ -479,8 +530,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => formatText('horizontalRule')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  formatText('horizontalRule');
+                }}
                 title="Divider"
               >
                 <Minus className="h-4 w-4" />
@@ -493,8 +546,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant="ghost"
                   size="sm"
                   className="rounded-full"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setIsColorPickerOpen(!isColorPickerOpen);
+                  }}
                   title="Text Color"
                 >
                   <Palette className="h-4 w-4" />
@@ -517,8 +572,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                   variant="outline"
                   size="sm"
                   className="rounded-full h-7 px-3 flex items-center gap-1"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setIsFontSizeMenuOpen(!isFontSizeMenuOpen)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setIsFontSizeMenuOpen(!isFontSizeMenuOpen);
+                  }}
                   title="Font Size"
                 >
                   <Type className="h-4 w-4" />
@@ -529,8 +586,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-xs py-2 px-3"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         formatText('fontSizeSmall');
                         setIsFontSizeMenuOpen(false);
                       }}
@@ -540,8 +597,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-sm py-2 px-3"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         formatText('fontSizeNormal');
                         setIsFontSizeMenuOpen(false);
                       }}
@@ -551,8 +608,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-lg py-2 px-3"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         formatText('fontSizeLarge');
                         setIsFontSizeMenuOpen(false);
                       }}
@@ -562,8 +619,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-none text-xl py-2 px-3"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         formatText('fontSizeXLarge');
                         setIsFontSizeMenuOpen(false);
                       }}
@@ -580,8 +637,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => executeCommand('undo')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  executeCommand('undo');
+                }}
                 title="Undo"
               >
                 <Undo className="h-4 w-4" />
@@ -590,8 +649,10 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
                 variant="ghost"
                 size="sm"
                 className="rounded-full"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => executeCommand('redo')}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  executeCommand('redo');
+                }}
                 title="Redo"
               >
                 <Redo className="h-4 w-4" />
