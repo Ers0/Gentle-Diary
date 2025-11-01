@@ -205,62 +205,46 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Better heading handling that preserves editor structure
+  // Simplified heading handling using document.execCommand
   const applyHeading = (headingTag: 'h1' | 'h2' | 'h3') => {
     if (editorRef.current) {
+      editorRef.current.focus();
+      
+      // Get current selection
       const selection = window.getSelection();
       
       if (selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         
-        // If no text is selected, apply to the current line
+        // If no text is selected, we need to apply to the current block
         if (range.collapsed) {
-          // Get the current block element (paragraph, heading, etc.)
+          // Find the current block element
           let container = range.startContainer;
           
-          // Navigate up to the nearest block element
-          while (container && container !== editorRef.current && container.nodeType !== Node.ELEMENT_NODE) {
+          // Navigate up to find the block element
+          while (container && container.nodeType !== Node.ELEMENT_NODE) {
             container = container.parentNode;
           }
           
-          // If we're at the editor root, create a new paragraph
-          if (container === editorRef.current) {
-            const paragraph = document.createElement('p');
-            paragraph.innerHTML = '<br>';
-            range.insertNode(paragraph);
-            range.selectNode(paragraph);
-            range.collapse(false);
-            container = paragraph;
-          }
-          
-          // If we're already in the same heading type, convert back to paragraph
+          // If we're already in the same heading, convert to paragraph
           if (container && container.nodeName.toLowerCase() === headingTag) {
-            const paragraph = document.createElement('p');
-            paragraph.innerHTML = container.innerHTML || '<br>';
-            container.parentNode?.replaceChild(paragraph, container);
+            document.execCommand('formatBlock', false, '<p>');
           } 
-          // If we're in a different heading, convert to the new heading type
+          // If we're in a different heading, convert to the new heading
           else if (container && (container.nodeName.toLowerCase() === 'h1' || 
                                 container.nodeName.toLowerCase() === 'h2' || 
                                 container.nodeName.toLowerCase() === 'h3')) {
-            const heading = document.createElement(headingTag);
-            heading.innerHTML = container.innerHTML || '<br>';
-            container.parentNode?.replaceChild(heading, container);
+            document.execCommand('formatBlock', false, `<${headingTag}>`);
           }
-          // If we're in a paragraph or other block element, convert to heading
-          else if (container) {
-            const heading = document.createElement(headingTag);
-            heading.innerHTML = container.innerHTML || '<br>';
-            container.parentNode?.replaceChild(heading, container);
+          // Otherwise, convert current block to heading
+          else {
+            document.execCommand('formatBlock', false, `<${headingTag}>`);
           }
         } 
-        // If text is selected, wrap it in the heading
+        // If text is selected, apply heading to selection
         else {
-          // Use document.execCommand for selected text
           document.execCommand('formatBlock', false, `<${headingTag}>`);
         }
-        
-        editorRef.current.focus();
       }
     }
     
