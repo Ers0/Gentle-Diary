@@ -113,6 +113,48 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
+  const insertCheckbox = () => {
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        // Create the checkbox structure
+        const container = document.createElement('div');
+        container.className = 'flex items-start';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'mt-1 mr-2 cursor-pointer';
+        
+        const textSpan = document.createElement('span');
+        textSpan.contentEditable = 'true';
+        textSpan.className = 'flex-1';
+        
+        container.appendChild(checkbox);
+        container.appendChild(textSpan);
+        
+        // Insert the container
+        range.insertNode(container);
+        
+        // Place cursor inside the text span
+        const newRange = document.createRange();
+        newRange.selectNodeContents(textSpan);
+        newRange.collapse(true); // Place cursor at the beginning of the span
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        
+        editorRef.current.focus();
+      }
+    }
+    
+    // Update content state
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
   const formatText = (format: string) => {
     switch (format) {
       case 'bold':
@@ -140,8 +182,8 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('insertOrderedList');
         break;
       case 'checkboxList':
-        // Insert just the checkbox with a properly focusable structure
-        insertHTML('<div class="flex items-start"><input type="checkbox" class="mt-1 mr-2 cursor-pointer" /><span contenteditable="true" class="flex-1"></span></div>');
+        // Insert just the checkbox with proper cursor positioning
+        insertCheckbox();
         break;
       case 'blockquote':
         executeCommand('formatBlock', '<blockquote>');
