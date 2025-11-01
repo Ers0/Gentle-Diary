@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { DiaryService, DiaryEntry } from "@/services/diaryService";
-import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette, Cloud, Database } from "lucide-react";
+import { Search, Plus, FileText, Heart, FolderPlus, BookOpen, Palette, Cloud, Database, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from '@/integrations/supabase/client';
 
 interface Book {
   id: string;
@@ -75,7 +77,7 @@ const Diary = () => {
     if (loading) return;
     
     const loadEntries = async () => {
-      if (user) {
+      if (user && supabase) {
         // Load from cloud
         try {
           const cloudEntries = await DiaryService.getCloudEntries();
@@ -105,7 +107,7 @@ const Diary = () => {
 
   const handleSaveEntry = async (entry: DiaryEntry) => {
     try {
-      if (user) {
+      if (user && supabase) {
         // Save to cloud
         const savedEntry = await DiaryService.saveCloudEntry(entry);
         if (entries.some(e => e.id === entry.id)) {
@@ -131,7 +133,7 @@ const Diary = () => {
       
       toast({
         title: "Entry saved",
-        description: user ? "Your entry has been saved to the cloud." : "Your entry has been saved locally."
+        description: user && supabase ? "Your entry has been saved to the cloud." : "Your entry has been saved locally."
       });
     } catch (error) {
       console.error("Failed to save entry:", error);
@@ -191,6 +193,15 @@ const Diary = () => {
   }));
 
   const handleSyncToCloud = async () => {
+    if (!supabase) {
+      toast({
+        title: "Cloud features unavailable",
+        description: "Supabase integration is not configured.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!user) {
       navigate("/login");
       return;
@@ -350,7 +361,15 @@ const Diary = () => {
           <Sidebar entries={filteredEntries} onViewEntry={handleViewEntry} />
         </div>
         <div className="p-4 border-t border-border/50 space-y-2">
-          {!user ? (
+          {!supabase ? (
+            <Alert variant="destructive" className="rounded-lg">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Cloud Features Unavailable</AlertTitle>
+              <AlertDescription>
+                Configure Supabase to enable cloud saving
+              </AlertDescription>
+            </Alert>
+          ) : !user ? (
             <Button 
               className="w-full rounded-full" 
               variant="outline"
@@ -413,7 +432,19 @@ const Diary = () => {
                   Write an Entry
                 </Button>
                 
-                {!user && (
+                {!supabase && (
+                  <div className="mt-8 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                    <div className="flex items-center justify-center mb-2">
+                      <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
+                      <span className="text-sm font-medium text-destructive">Cloud Features Unavailable</span>
+                    </div>
+                    <p className="text-xs text-destructive mb-3">
+                      Configure Supabase to enable cloud saving and synchronization.
+                    </p>
+                  </div>
+                )}
+                
+                {supabase && !user && (
                   <div className="mt-8 p-4 bg-muted/50 rounded-lg border border-border/50">
                     <div className="flex items-center justify-center mb-2">
                       <Database className="h-4 w-4 mr-2 text-muted-foreground" />

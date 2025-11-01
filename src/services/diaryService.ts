@@ -51,8 +51,12 @@ export class DiaryService {
     return filteredEntries
   }
 
-  // Cloud storage methods
+  // Cloud storage methods (only available if Supabase is configured)
   static async saveCloudEntry(entry: DiaryEntry) {
+    if (!supabase) {
+      throw new Error('Supabase is not configured')
+    }
+    
     const { data, error } = await supabase
       .from('diary_entries')
       .upsert({
@@ -71,6 +75,10 @@ export class DiaryService {
   }
 
   static async getCloudEntries() {
+    if (!supabase) {
+      throw new Error('Supabase is not configured')
+    }
+    
     const { data, error } = await supabase
       .from('diary_entries')
       .select('*')
@@ -84,6 +92,10 @@ export class DiaryService {
   }
 
   static async deleteCloudEntry(id: string) {
+    if (!supabase) {
+      throw new Error('Supabase is not configured')
+    }
+    
     const { error } = await supabase
       .from('diary_entries')
       .delete()
@@ -95,6 +107,10 @@ export class DiaryService {
 
   // Sync methods
   static async syncLocalToCloud() {
+    if (!supabase) {
+      throw new Error('Supabase is not configured')
+    }
+    
     const localEntries = this.getLocalEntries()
     if (localEntries.length === 0) return
 
