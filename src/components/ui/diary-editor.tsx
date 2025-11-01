@@ -205,6 +205,59 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
+  // Better heading handling
+  const applyHeading = (headingTag: 'h1' | 'h2' | 'h3') => {
+    if (editorRef.current) {
+      const selection = window.getSelection();
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // If no text is selected, apply to the entire line/paragraph
+        if (range.collapsed) {
+          // Find the current paragraph or block element
+          let container = range.startContainer;
+          while (container && container.nodeType !== Node.ELEMENT_NODE) {
+            container = container.parentNode;
+          }
+          
+          // If we're already in a heading of the same type, convert back to paragraph
+          if (container && container.nodeName.toLowerCase() === headingTag) {
+            const parent = container.parentNode;
+            const paragraph = document.createElement('p');
+            paragraph.innerHTML = container.innerHTML;
+            parent?.replaceChild(paragraph, container);
+          } 
+          // Otherwise, convert the paragraph to the heading
+          else if (container) {
+            const heading = document.createElement(headingTag);
+            heading.innerHTML = container.innerHTML;
+            container.parentNode?.replaceChild(heading, container);
+          }
+        } 
+        // If text is selected, wrap it in the heading
+        else {
+          // Extract selected content
+          const selectedContent = range.extractContents();
+          
+          // Create heading element
+          const heading = document.createElement(headingTag);
+          heading.appendChild(selectedContent);
+          
+          // Insert heading
+          range.insertNode(heading);
+        }
+        
+        editorRef.current.focus();
+      }
+    }
+    
+    // Update content state
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
   const formatText = (format: string) => {
     switch (format) {
       case 'bold':
@@ -217,13 +270,13 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         executeCommand('underline');
         break;
       case 'heading1':
-        executeCommand('formatBlock', '<h1>');
+        applyHeading('h1');
         break;
       case 'heading2':
-        executeCommand('formatBlock', '<h2>');
+        applyHeading('h2');
         break;
       case 'heading3':
-        executeCommand('formatBlock', '<h3>');
+        applyHeading('h3');
         break;
       case 'bulletList':
         executeCommand('insertUnorderedList');
