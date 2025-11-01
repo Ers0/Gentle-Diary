@@ -205,127 +205,17 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
     }
   };
 
-  // Custom heading toggle with direct DOM manipulation
+  // Simplified heading toggle using execCommand
   const toggleHeading = (level: 1 | 2 | 3) => {
     if (!editorRef.current) return;
-    
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    
-    const range = selection.getRangeAt(0);
-    
-    // If no text is selected, work with the current block
-    if (range.collapsed) {
-      // Get the current block element (paragraph, heading, etc.)
-      let blockElement = range.startContainer;
-      
-      // Navigate up to find the block element
-      while (blockElement && blockElement !== editorRef.current) {
-        if (blockElement.nodeType === Node.ELEMENT_NODE && 
-            ['P', 'H1', 'H2', 'H3'].includes((blockElement as HTMLElement).nodeName)) {
-          break;
-        }
-        blockElement = blockElement.parentNode;
-      }
-      
-      // If we didn't find a block element, create a paragraph
-      if (!blockElement || blockElement === editorRef.current) {
-        const paragraph = document.createElement('p');
-        paragraph.innerHTML = '<br>';
-        range.insertNode(paragraph);
-        blockElement = paragraph;
-      }
-      
-      // Convert the block element
-      const currentTag = (blockElement as HTMLElement).nodeName;
-      const headingTag = `H${level}`;
-      
-      // If already the correct heading, convert to paragraph
-      if (currentTag === headingTag) {
-        const paragraph = document.createElement('p');
-        paragraph.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
-        (blockElement as HTMLElement).parentNode?.replaceChild(paragraph, blockElement as HTMLElement);
-        
-        // Move cursor to the end of the new paragraph
-        const newRange = document.createRange();
-        newRange.selectNodeContents(paragraph);
-        newRange.collapse(false); // Move to end
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      } 
-      // If another heading, convert to the new heading level
-      else if (currentTag.startsWith('H')) {
-        const newHeading = document.createElement(headingTag);
-        newHeading.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
-        (blockElement as HTMLElement).parentNode?.replaceChild(newHeading, blockElement as HTMLElement);
-        
-        // Move cursor to the end of the new heading
-        const newRange = document.createRange();
-        newRange.selectNodeContents(newHeading);
-        newRange.collapse(false); // Move to end
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-      // If paragraph or other block, convert to heading
-      else {
-        const newHeading = document.createElement(headingTag);
-        newHeading.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
-        (blockElement as HTMLElement).parentNode?.replaceChild(newHeading, blockElement as HTMLElement);
-        
-        // Move cursor to the end of the new heading
-        const newRange = document.createRange();
-        newRange.selectNodeContents(newHeading);
-        newRange.collapse(false); // Move to end
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-    } 
-    // If text is selected, wrap in heading
-    else {
-      // Store the selection range before manipulation
-      const bookmark = {
-        start: range.startContainer,
-        startOffset: range.startOffset,
-        end: range.endContainer,
-        endOffset: range.endOffset
-      };
-      
-      // Get the selected content
-      const selectedContent = range.cloneContents();
-      
-      // Delete the selected content
-      range.deleteContents();
-      
-      // Create heading element
-      const headingTag = `H${level}`;
-      const heading = document.createElement(headingTag);
-      
-      // If selected content has only one text node, use it directly
-      if (selectedContent.childNodes.length === 1 && 
-          selectedContent.firstChild?.nodeType === Node.TEXT_NODE) {
-        heading.textContent = selectedContent.textContent;
-      } else {
-        // Otherwise, append the cloned content
-        heading.appendChild(selectedContent);
-      }
-      
-      // Insert heading
-      range.insertNode(heading);
-      
-      // Move cursor to the end of the new heading
-      const newRange = document.createRange();
-      newRange.selectNodeContents(heading);
-      newRange.collapse(false); // Move to end
-      selection.removeAllRanges();
-      selection.addRange(newRange);
-    }
-    
+
     editorRef.current.focus();
-    
-    // Update content state
-    if (editorRef.current) {
-      setContent(editorRef.current.innerHTML);
-    }
+
+    const tag = `h${level}`;
+    // TypeScript-safe use of execCommand
+    document.execCommand("formatBlock", false, tag);
+
+    setContent(editorRef.current.innerHTML);
   };
 
   const formatText = (format: string) => {
