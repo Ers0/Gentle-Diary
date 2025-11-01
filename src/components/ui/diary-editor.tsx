@@ -48,7 +48,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
   useEffect(() => {
     setContent(entry.content);
     if (editorRef.current) {
-      editorRef.current.innerHTML = entry.content;
+      editorRef.current.innerHTML = entry.content || '<p><br></p>';
     }
   }, [entry.content]);
 
@@ -232,7 +232,6 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       if (!blockElement || blockElement === editorRef.current) {
         const paragraph = document.createElement('p');
         paragraph.innerHTML = '<br>';
-        // Insert at cursor position
         range.insertNode(paragraph);
         blockElement = paragraph;
       }
@@ -246,18 +245,39 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         const paragraph = document.createElement('p');
         paragraph.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
         (blockElement as HTMLElement).parentNode?.replaceChild(paragraph, blockElement as HTMLElement);
+        
+        // Move cursor to the end of the new paragraph
+        const newRange = document.createRange();
+        newRange.selectNodeContents(paragraph);
+        newRange.collapse(false); // Move to end
+        selection.removeAllRanges();
+        selection.addRange(newRange);
       } 
       // If another heading, convert to the new heading level
       else if (currentTag.startsWith('H')) {
         const newHeading = document.createElement(headingTag);
         newHeading.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
         (blockElement as HTMLElement).parentNode?.replaceChild(newHeading, blockElement as HTMLElement);
+        
+        // Move cursor to the end of the new heading
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newHeading);
+        newRange.collapse(false); // Move to end
+        selection.removeAllRanges();
+        selection.addRange(newRange);
       }
       // If paragraph or other block, convert to heading
       else {
         const newHeading = document.createElement(headingTag);
         newHeading.innerHTML = (blockElement as HTMLElement).innerHTML || '<br>';
         (blockElement as HTMLElement).parentNode?.replaceChild(newHeading, blockElement as HTMLElement);
+        
+        // Move cursor to the end of the new heading
+        const newRange = document.createRange();
+        newRange.selectNodeContents(newHeading);
+        newRange.collapse(false); // Move to end
+        selection.removeAllRanges();
+        selection.addRange(newRange);
       }
     } 
     // If text is selected, wrap in heading
@@ -276,6 +296,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
       // Select the new heading
       const newRange = document.createRange();
       newRange.selectNodeContents(heading);
+      newRange.collapse(false); // Move to end
       selection.removeAllRanges();
       selection.addRange(newRange);
     }
@@ -374,6 +395,14 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
         // Prevent any checkbox interaction when clicking on the text
         e.preventDefault();
       }
+    }
+  };
+
+  // Ensure editor always has content
+  const handleBlur = () => {
+    if (editorRef.current && editorRef.current.innerHTML.trim() === '') {
+      editorRef.current.innerHTML = '<p><br></p>';
+      setContent('<p><br></p>');
     }
   };
 
@@ -636,7 +665,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
               className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc [&_ul]:list-disc [&_ul_li]:list-disc [&_ul_li]:pl-2 prose-ol:list-decimal [&_ol]:list-decimal [&_ol_li]:list-decimal [&_ol_li]:pl-2 prose-li:my-1 [&_ul]:pl-4 [&_ol]:pl-4"
               onInput={handleInput}
               onClick={handleEditorClick}
-              dangerouslySetInnerHTML={{ __html: content }}
+              onBlur={handleBlur}
             />
           </div>
           
