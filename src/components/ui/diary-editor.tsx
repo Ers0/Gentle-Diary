@@ -520,7 +520,7 @@ export function DiaryEditor({ entry, onSave, currentBookId }: DiaryEditorProps) 
             <div
               ref={editorRef}
               contentEditable
-              className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc [&_ul]:list-disc [&_ul_li]:list-disc [&_ul_li]:pl-2 prose-ol:list-decimal [&_ol]:list-decimal [&_ol_li]:list-decimal [&_ol_li]:pl-2 prose-li:my-1"
+              className="min-h-[500px] p-4 border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 prose prose-stone dark:prose-invert max-w-none prose-headings:font-heading prose-h1:text-3xl prose-h1:font-bold prose-h2:text-2xl prose-h2:font-semibold prose-h3:text-xl prose-h3:font-medium prose-p:text-base prose-p:leading-relaxed prose-blockquote:text-lg prose-blockquote:italic prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-ul:list-disc [&_ul]:list-disc [&_ul_li]:list-disc [&_ul_li]:pl-2 prose-ol:list-decimal [&_ol]:list-decimal [&_ol_li]:list-decimal [&_ol_li]:pl-2 prose-li:my-1 [&_ul]:pl-4 [&_ol]:pl-4"
               onInput={handleInput}
               onClick={handleEditorClick}
             />
