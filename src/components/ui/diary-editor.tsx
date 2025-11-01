@@ -22,7 +22,7 @@ import {
   Palette,
   Minus,
   Type
-} from "lencide-react";
+} from "lucide-react";
 import { ColorPicker } from "./color-picker";
 import { useToast } from "@/hooks/use-toast";
 
