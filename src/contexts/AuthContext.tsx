@@ -17,15 +17,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('AuthProvider mounted, Supabase client:', supabase ? 'Available' : 'Not available')
+    
     // If Supabase isn't configured, skip auth setup
     if (!supabase) {
+      console.log('Supabase not available, skipping auth setup')
       setLoading(false)
       return
     }
 
     const getSession = async () => {
       try {
+        console.log('Getting session from Supabase')
         const { data: { session } } = await supabase.auth.getSession()
+        console.log('Session retrieved:', session ? 'User logged in' : 'No active session')
         setSession(session)
       } catch (error) {
         console.error('Error getting session:', error)
@@ -37,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     getSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out')
       setSession(session)
     })
 
@@ -51,6 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!supabase) {
       throw new Error('Supabase is not configured')
     }
+    console.log('Signing in with email:', email)
     return await supabase.auth.signInWithPassword({ email, password })
   }
 
@@ -58,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!supabase) {
       throw new Error('Supabase is not configured')
     }
+    console.log('Signing up with email:', email)
     return await supabase.auth.signUp({ email, password })
   }
 
@@ -66,6 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null)
       return Promise.resolve()
     }
+    console.log('Signing out')
     return await supabase.auth.signOut()
   }
 
