@@ -60,14 +60,24 @@ const Login = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Auth
-              supabaseClient={supabase}
-              providers={[]}
-              appearance={{
-                theme: ThemeSupa,
-              }}
-              theme="default"
-            />
+            {supabase ? (
+              <Auth
+                supabaseClient={supabase}
+                providers={[]}
+                appearance={{
+                  theme: ThemeSupa,
+                }}
+                theme="default"
+              />
+            ) : (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Supabase Not Configured</AlertTitle>
+                <AlertDescription>
+                  Supabase authentication is not available. Please contact the administrator.
+                </AlertDescription>
+              </Alert>
+            )}
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
