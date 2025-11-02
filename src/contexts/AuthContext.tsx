@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out')
       setSession(session)
+      setLoading(false)
     })
 
     return () => {
@@ -75,7 +76,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return Promise.resolve()
     }
     console.log('Signing out')
-    return await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('Error signing out:', error)
+      throw error
+    }
+    setSession(null)
   }
 
   const value = {

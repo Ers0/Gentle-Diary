@@ -1,5 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Debug logging
+console.log('Environment variables:')
+console.log('import.meta.env.VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL)
+console.log('import.meta.env.VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY)
+
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -11,6 +16,7 @@ console.log('Supabase Anon Key:', supabaseAnonKey ? 'Key present' : 'Key missing
 let supabase
 if (supabaseUrl && supabaseAnonKey) {
   try {
+    console.log('Attempting to create Supabase client...')
     supabase = createClient(supabaseUrl, supabaseAnonKey)
     console.log('Supabase client initialized successfully')
   } catch (error) {
